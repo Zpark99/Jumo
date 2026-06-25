@@ -36,9 +36,25 @@ export default function Home() {
         </p>
 
         {!loading && user && (
-          <p className="rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
-            {user.email}님, 로그인되었습니다.
-          </p>
+          <div className="flex flex-col items-center gap-4">
+            <p className="rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+              {user.email}님, 로그인되었습니다.
+            </p>
+
+            <Link
+              href="/stocks"
+              className="flex h-12 items-center justify-center rounded-full bg-zinc-950 px-8 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+            >
+              거래하러가기
+            </Link>
+
+            <Link
+              href="/account"
+              className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+            >
+              내 계좌 보기
+            </Link>
+          </div>
         )}
 
         {!loading && !user && (
