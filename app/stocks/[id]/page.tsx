@@ -124,6 +124,13 @@ export default function StockTradePage({
     setSubmitting(true);
     setOrderError(null);
 
+    // execute_order V3 검증 통과를 위해 price_quotes를 미리 갱신
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    await fetch(`/api/quote/${stockId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+
     const { data, error } = await supabase.rpc("execute_order", {
       p_stock_id: stockId,
       p_side: "buy",
