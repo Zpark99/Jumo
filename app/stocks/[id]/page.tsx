@@ -1,10 +1,21 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
+
+// execute_order가 반환하는 V1~V7 거부 사유를 사용자에게 보여줄 문구로 매핑
+const REJECT_REASON_MESSAGES: Record<string, string> = {
+  V1_INVALID_QUANTITY: "주문 수량이 올바르지 않습니다",
+  V2_STOCK_NOT_FOUND: "종목 정보를 찾을 수 없습니다",
+  V3_NO_QUOTE: "시세 정보가 없습니다. 다시 시도해주세요",
+  V3_STALE_QUOTE: "시세가 오래되어 주문이 거부되었습니다. 다시 시도해주세요",
+  V4_INVALID_LIMIT_PRICE: "지정가가 올바르지 않습니다",
+  V5_INSUFFICIENT_CASH: "잔액이 부족합니다",
+  V6_INSUFFICIENT_HOLDINGS: "보유 수량이 부족합니다",
+};
 
 type Stock = {
   id: string;
@@ -55,6 +66,7 @@ export default function StockTradePage({
   const [submitting, setSubmitting] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -90,6 +102,7 @@ export default function StockTradePage({
 
       if (!res.ok) {
         setQuoteError("시세를 불러오지 못했습니다");
+        setQuote(null);
         return;
       }
 
@@ -121,38 +134,55 @@ export default function StockTradePage({
   const estimatedAmount = quote ? quote.price * quantity : null;
 
   const handleConfirmBuy = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     setOrderError(null);
 
-    // execute_order V3 검증 통과를 위해 price_quotes를 미리 갱신
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData.session?.access_token;
-    await fetch(`/api/quote/${stockId}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    });
+    try {
+      // execute_order V3 검증 통과를 위해 price_quotes를 미리 갱신
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const quoteRes = await fetch(`/api/quote/${stockId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
 
-    const { data, error } = await supabase.rpc("execute_order", {
-      p_stock_id: stockId,
-      p_side: "buy",
-      p_quantity: quantity,
-      p_order_type: "market",
-    });
+      if (!quoteRes.ok) {
+        setOrderError("시세 갱신에 실패했습니다. 다시 시도해주세요");
+        return;
+      }
 
-    setSubmitting(false);
+      const { data, error } = await supabase.rpc("execute_order", {
+        p_stock_id: stockId,
+        p_side: "buy",
+        p_quantity: quantity,
+        p_order_type: "market",
+      });
 
-    if (error) {
-      setOrderError(error.message);
-      return;
-    }
+      if (error) {
+        setOrderError(error.message);
+        return;
+      }
 
-    const result = (data as OrderResult[] | null)?.[0];
+      const result = (data as OrderResult[] | null)?.[0];
 
-    if (result?.status === "filled") {
-      setShowConfirm(false);
-      setToast("체결 완료");
-      router.refresh();
-    } else {
-      setOrderError(result?.reject_reason ?? "주문이 거부되었습니다");
+      if (result?.status === "filled") {
+        setShowConfirm(false);
+        setToast("체결 완료");
+        router.refresh();
+      } else {
+        const reason = result?.reject_reason ?? null;
+        setOrderError(
+          (reason && REJECT_REASON_MESSAGES[reason]) ??
+            reason ??
+            "주문이 거부되었습니다"
+        );
+      }
+    } catch {
+      setOrderError("네트워크 오류로 주문에 실패했습니다. 다시 시도해주세요");
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   };
 

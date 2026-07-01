@@ -1,6 +1,17 @@
 import { createClient } from "@supabase/supabase-js";
 import type { NextRequest } from "next/server";
 
+import { QUOTE_CACHE_TTL_MS } from "@/lib/constants";
+
+type KisQuoteResponse = {
+  rt_cd: string;
+  output?: {
+    stck_prpr?: string;
+    stck_sdpr?: string;
+    prdy_ctrt?: string;
+  };
+};
+
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getKisToken(): Promise<string> {
@@ -28,7 +39,7 @@ async function getKisToken(): Promise<string> {
   return cachedToken.value;
 }
 
-async function fetchKisQuote(code: string, token: string) {
+async function fetchKisQuote(code: string, token: string): Promise<KisQuoteResponse> {
   const baseUrl = process.env.KIS_BASE_URL ?? "https://openapi.koreainvestment.com:9443";
   const url = new URL(
     `${baseUrl}/uapi/domestic-stock/v1/quotations/inquire-price`
@@ -72,10 +83,10 @@ export async function GET(
 
   if (data) {
     const ageMs = Date.now() - new Date(data.fetched_at).getTime();
-    if (ageMs < 50_000) {
+    if (ageMs < QUOTE_CACHE_TTL_MS) {
       return Response.json(data);
     }
-    // 50초 초과 → KIS 재호출하여 price_quotes 갱신 (V3_STALE_QUOTE 방지)
+    // 캐시 만료 → KIS 재호출하여 price_quotes 갱신 (V3_STALE_QUOTE 방지)
   }
 
   // 캐시 미스 시 KIS API 직접 호출
@@ -91,12 +102,20 @@ export async function GET(
     }
 
     const output = kisData.output;
+    const price = Number(output?.stck_prpr);
+    const prevClose = Number(output?.stck_sdpr);
+    const changeRate = Number(output?.prdy_ctrt);
+
+    if (!Number.isFinite(price)) {
+      return Response.json({ error: "QUOTE_NOT_FOUND" }, { status: 404 });
+    }
+
     const fetched_at = new Date().toISOString();
     const quote = {
       stock_id: stockId,
-      price: Number(output.stck_prpr),
-      prev_close: Number(output.stck_sdpr),
-      change_rate: Number(output.prdy_ctrt),
+      price,
+      prev_close: Number.isFinite(prevClose) ? prevClose : null,
+      change_rate: Number.isFinite(changeRate) ? changeRate : null,
       fetched_at,
     };
 
