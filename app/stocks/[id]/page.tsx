@@ -48,6 +48,20 @@ function formatPrice(price: number, currency: string) {
   }).format(price);
 }
 
+async function fetchHoldingQty(stockId: string): Promise<number> {
+  const { data: accountRow } = await supabase.from("accounts").select("id").single();
+  if (!accountRow) return 0;
+
+  const { data: holdingRow } = await supabase
+    .from("holdings")
+    .select("quantity")
+    .eq("account_id", accountRow.id)
+    .eq("stock_id", stockId)
+    .maybeSingle();
+
+  return holdingRow?.quantity ?? 0;
+}
+
 export default function StockTradePage({
   params,
 }: {
@@ -62,6 +76,8 @@ export default function StockTradePage({
   const [quoteError, setQuoteError] = useState<string | null>(null);
 
   const [quantity, setQuantity] = useState(1);
+  const [side, setSide] = useState<"buy" | "sell">("buy");
+  const [holdingQty, setHoldingQty] = useState(0);
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
@@ -84,6 +100,18 @@ export default function StockTradePage({
         if (data) setStock(data);
       });
   }, [stockId]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let active = true;
+    fetchHoldingQty(stockId).then((qty) => {
+      if (active) setHoldingQty(qty);
+    });
+    return () => {
+      active = false;
+    };
+  }, [user, stockId]);
 
   useEffect(() => {
     if (!user) return;
@@ -133,7 +161,7 @@ export default function StockTradePage({
   const currency = stock?.currency ?? "KRW";
   const estimatedAmount = quote ? quote.price * quantity : null;
 
-  const handleConfirmBuy = async () => {
+  const handleConfirmOrder = async () => {
     if (submittingRef.current) return;
     submittingRef.current = true;
     setSubmitting(true);
@@ -154,7 +182,7 @@ export default function StockTradePage({
 
       const { data, error } = await supabase.rpc("execute_order", {
         p_stock_id: stockId,
-        p_side: "buy",
+        p_side: side,
         p_quantity: quantity,
         p_order_type: "market",
       });
@@ -168,7 +196,8 @@ export default function StockTradePage({
 
       if (result?.status === "filled") {
         setShowConfirm(false);
-        setToast("체결 완료");
+        setToast(side === "buy" ? "매수 체결 완료" : "매도 체결 완료");
+        setHoldingQty(await fetchHoldingQty(stockId));
         router.refresh();
       } else {
         const reason = result?.reject_reason ?? null;
@@ -223,9 +252,14 @@ export default function StockTradePage({
 
         {/* 주문 패널 */}
         <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-            매수 주문
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              주문
+            </h2>
+            <span className="text-xs text-zinc-400 dark:text-zinc-500">
+              보유 {holdingQty}주
+            </span>
+          </div>
 
           <div className="mt-4 space-y-3">
             <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400">
@@ -245,6 +279,7 @@ export default function StockTradePage({
             <button
               type="button"
               onClick={() => {
+                setSide("buy");
                 setOrderError(null);
                 setShowConfirm(true);
               }}
@@ -256,10 +291,15 @@ export default function StockTradePage({
 
             <button
               type="button"
-              disabled
-              className="flex w-full items-center justify-center rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-400 dark:border-zinc-800 dark:text-zinc-600"
+              onClick={() => {
+                setSide("sell");
+                setOrderError(null);
+                setShowConfirm(true);
+              }}
+              disabled={!quote || quantity <= 0 || holdingQty <= 0}
+              className="flex w-full items-center justify-center rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-50 disabled:pointer-events-none disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-50 dark:hover:bg-zinc-800"
             >
-              매도 (준비중)
+              매도
             </button>
 
             {orderError && !showConfirm && (
@@ -274,7 +314,7 @@ export default function StockTradePage({
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 px-6">
           <div className="w-full max-w-sm rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
-              매수 주문 확인
+              {side === "buy" ? "매수 주문 확인" : "매도 주문 확인"}
             </h3>
 
             <div className="mt-4 space-y-2 text-sm">
@@ -287,7 +327,9 @@ export default function StockTradePage({
                 <span className="text-zinc-950 dark:text-zinc-50">{quantity}주</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">예상금액</span>
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  {side === "buy" ? "예상금액" : "예상 회수금액"}
+                </span>
                 <span className="text-zinc-950 dark:text-zinc-50">
                   {estimatedAmount !== null
                     ? formatPrice(estimatedAmount, currency)
@@ -295,6 +337,12 @@ export default function StockTradePage({
                 </span>
               </div>
             </div>
+
+            {side === "sell" && quantity > holdingQty && (
+              <p className="mt-4 text-sm text-red-500">
+                보유 수량({holdingQty}주)을 초과했습니다
+              </p>
+            )}
 
             {orderError && (
               <p className="mt-4 text-sm text-red-500">{orderError}</p>
@@ -314,8 +362,10 @@ export default function StockTradePage({
               </button>
               <button
                 type="button"
-                onClick={handleConfirmBuy}
-                disabled={submitting}
+                onClick={handleConfirmOrder}
+                disabled={
+                  submitting || (side === "sell" && quantity > holdingQty)
+                }
                 className="flex-1 rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:pointer-events-none disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
               >
                 {submitting ? "처리 중..." : "확인"}
