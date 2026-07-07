@@ -2,9 +2,18 @@
 
 import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
+import type { Candle } from "@/app/api/candles/[stockId]/route";
 
 // execute_order가 반환하는 V1~V7 거부 사유를 사용자에게 보여줄 문구로 매핑
 const REJECT_REASON_MESSAGES: Record<string, string> = {
@@ -48,6 +57,11 @@ function formatPrice(price: number, currency: string) {
   }).format(price);
 }
 
+// KIS 응답 날짜(YYYYMMDD) -> "MM/DD" 축 라벨
+function formatCandleDate(date: string) {
+  return `${date.slice(4, 6)}/${date.slice(6, 8)}`;
+}
+
 async function fetchHoldingQty(stockId: string): Promise<number> {
   // holdings RLS(holdings_select_own)가 이미 본인 계좌로 필터링하므로 accounts 조회 없이 단일 쿼리로 처리
   const { data: holdingRow } = await supabase
@@ -80,6 +94,11 @@ export default function StockTradePage({
   const [orderError, setOrderError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const submittingRef = useRef(false);
+
+  const [activeTab, setActiveTab] = useState<"quote" | "chart">("quote");
+  const [candles, setCandles] = useState<Candle[] | null>(null);
+  const [candlesLoading, setCandlesLoading] = useState(false);
+  const [candlesError, setCandlesError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -149,6 +168,39 @@ export default function StockTradePage({
     const timer = setTimeout(() => setToast(null), 3000);
     return () => clearTimeout(timer);
   }, [toast]);
+
+  useEffect(() => {
+    if (activeTab !== "chart" || candles !== null) return;
+
+    let active = true;
+
+    async function loadCandles() {
+      setCandlesLoading(true);
+      setCandlesError(null);
+
+      try {
+        const res = await fetch(`/api/candles/${stockId}`);
+        if (!active) return;
+
+        if (!res.ok) {
+          setCandlesError("일봉 데이터를 불러오지 못했습니다");
+          return;
+        }
+
+        const data: { candles: Candle[] } = await res.json();
+        setCandles(data.candles);
+      } catch {
+        if (active) setCandlesError("일봉 데이터를 불러오지 못했습니다");
+      } finally {
+        if (active) setCandlesLoading(false);
+      }
+    }
+
+    loadCandles();
+    return () => {
+      active = false;
+    };
+  }, [activeTab, candles, stockId]);
 
   if (userLoading || !user) {
     return null;
@@ -230,21 +282,94 @@ export default function StockTradePage({
             {stock?.ticker ?? stockId}
           </p>
 
-          <div className="mt-8">
-            {quote ? (
-              <p className="text-4xl font-semibold text-zinc-950 dark:text-zinc-50">
-                {formatPrice(quote.price, currency)}
-              </p>
-            ) : (
-              <p className="text-4xl font-semibold text-zinc-400 dark:text-zinc-600">
-                -
-              </p>
-            )}
-
-            {quoteError && (
-              <p className="mt-2 text-sm text-red-500">{quoteError}</p>
-            )}
+          <div className="mt-6 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab("quote")}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                activeTab === "quote"
+                  ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
+                  : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              }`}
+            >
+              시세
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("chart")}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                activeTab === "chart"
+                  ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
+                  : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              }`}
+            >
+              차트
+            </button>
           </div>
+
+          {activeTab === "quote" ? (
+            <div className="mt-8">
+              {quote ? (
+                <p className="text-4xl font-semibold text-zinc-950 dark:text-zinc-50">
+                  {formatPrice(quote.price, currency)}
+                </p>
+              ) : (
+                <p className="text-4xl font-semibold text-zinc-400 dark:text-zinc-600">
+                  -
+                </p>
+              )}
+
+              {quoteError && (
+                <p className="mt-2 text-sm text-red-500">{quoteError}</p>
+              )}
+            </div>
+          ) : (
+            <div className="mt-8 h-64">
+              {candlesLoading && (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  불러오는 중...
+                </p>
+              )}
+
+              {candlesError && (
+                <p className="text-sm text-red-500">{candlesError}</p>
+              )}
+
+              {!candlesLoading && !candlesError && candles && candles.length > 0 && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={candles}>
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={formatCandleDate}
+                      tick={{ fontSize: 11, fill: "#71717a" }}
+                      tickLine={false}
+                      axisLine={{ stroke: "#a1a1aa" }}
+                      minTickGap={24}
+                    />
+                    <YAxis
+                      domain={["dataMin", "dataMax"]}
+                      tick={{ fontSize: 11, fill: "#71717a" }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={60}
+                      tickFormatter={(v) => Number(v).toLocaleString()}
+                    />
+                    <Tooltip
+                      formatter={(value) => formatPrice(Number(value), currency)}
+                      labelFormatter={(label) => formatCandleDate(String(label))}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="close"
+                      stroke="#71717a"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 주문 패널 */}
