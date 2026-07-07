@@ -49,13 +49,10 @@ function formatPrice(price: number, currency: string) {
 }
 
 async function fetchHoldingQty(stockId: string): Promise<number> {
-  const { data: accountRow } = await supabase.from("accounts").select("id").single();
-  if (!accountRow) return 0;
-
+  // holdings RLS(holdings_select_own)가 이미 본인 계좌로 필터링하므로 accounts 조회 없이 단일 쿼리로 처리
   const { data: holdingRow } = await supabase
     .from("holdings")
     .select("quantity")
-    .eq("account_id", accountRow.id)
     .eq("stock_id", stockId)
     .maybeSingle();
 
