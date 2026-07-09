@@ -32,6 +32,16 @@ type Stock = {
   name_ko: string | null;
   name_en: string | null;
   currency: string;
+  market: string;
+};
+
+type Transaction = {
+  id: string;
+  side: string;
+  quantity: number;
+  price: number;
+  currency: string;
+  executed_at: string;
 };
 
 type Quote = {
@@ -95,10 +105,18 @@ export default function StockTradePage({
   const [toast, setToast] = useState<string | null>(null);
   const submittingRef = useRef(false);
 
-  const [activeTab, setActiveTab] = useState<"quote" | "chart">("quote");
+  const [activeTab, setActiveTab] = useState<
+    "quote" | "chart" | "history" | "info"
+  >("quote");
   const [candles, setCandles] = useState<Candle[] | null>(null);
   const [candlesLoading, setCandlesLoading] = useState(false);
   const [candlesError, setCandlesError] = useState<string | null>(null);
+
+  const [transactions, setTransactions] = useState<Transaction[] | null>(null);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
+  const [transactionsError, setTransactionsError] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -109,7 +127,7 @@ export default function StockTradePage({
   useEffect(() => {
     supabase
       .from("stocks")
-      .select("id, ticker, name_ko, name_en, currency")
+      .select("id, ticker, name_ko, name_en, currency, market")
       .eq("id", stockId)
       .single()
       .then(({ data }) => {
@@ -201,6 +219,38 @@ export default function StockTradePage({
       active = false;
     };
   }, [activeTab, candles, stockId]);
+
+  useEffect(() => {
+    if (activeTab !== "history" || transactions !== null) return;
+
+    let active = true;
+
+    async function loadTransactions() {
+      setTransactionsLoading(true);
+      setTransactionsError(null);
+
+      // tx_select_own RLS가 이미 본인 계좌로 필터링하므로 stock_id만으로 조회
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("id, side, quantity, price, currency, executed_at")
+        .eq("stock_id", stockId)
+        .order("executed_at", { ascending: false });
+
+      if (!active) return;
+
+      if (error) {
+        setTransactionsError("거래 내역을 불러오지 못했습니다");
+      } else {
+        setTransactions(data ?? []);
+      }
+      setTransactionsLoading(false);
+    }
+
+    loadTransactions();
+    return () => {
+      active = false;
+    };
+  }, [activeTab, transactions, stockId]);
 
   if (userLoading || !user) {
     return null;
@@ -305,6 +355,28 @@ export default function StockTradePage({
             >
               차트
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("history")}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                activeTab === "history"
+                  ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
+                  : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              }`}
+            >
+              거래내역
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("info")}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                activeTab === "info"
+                  ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
+                  : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              }`}
+            >
+              정보
+            </button>
           </div>
 
           {activeTab === "quote" ? (
@@ -323,7 +395,7 @@ export default function StockTradePage({
                 <p className="mt-2 text-sm text-red-500">{quoteError}</p>
               )}
             </div>
-          ) : (
+          ) : activeTab === "chart" ? (
             <div className="mt-8 h-64">
               {candlesLoading && (
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -368,6 +440,90 @@ export default function StockTradePage({
                   </LineChart>
                 </ResponsiveContainer>
               )}
+            </div>
+          ) : activeTab === "history" ? (
+            <div className="mt-8">
+              {transactionsLoading && (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  불러오는 중...
+                </p>
+              )}
+
+              {transactionsError && (
+                <p className="text-sm text-red-500">{transactionsError}</p>
+              )}
+
+              {!transactionsLoading &&
+                !transactionsError &&
+                transactions &&
+                transactions.length === 0 && (
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    거래 내역이 없습니다
+                  </p>
+                )}
+
+              {!transactionsLoading &&
+                !transactionsError &&
+                transactions &&
+                transactions.length > 0 && (
+                  <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    {transactions.map((t) => (
+                      <li
+                        key={t.id}
+                        className="flex items-center justify-between py-3"
+                      >
+                        <div>
+                          <p
+                            className={`text-sm font-medium ${
+                              t.side === "buy"
+                                ? "text-red-500"
+                                : "text-blue-500"
+                            }`}
+                          >
+                            {t.side === "buy" ? "매수" : "매도"}
+                          </p>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {new Date(t.executed_at).toLocaleString("ko-KR")}
+                          </p>
+                        </div>
+                        <p className="text-sm text-zinc-950 dark:text-zinc-50">
+                          {t.quantity}주 · {formatPrice(t.price, t.currency)}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+            </div>
+          ) : (
+            <div className="mt-8 space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-zinc-500 dark:text-zinc-400">종목명</span>
+                <span className="text-zinc-950 dark:text-zinc-50">
+                  {stockName}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500 dark:text-zinc-400">코드</span>
+                <span className="text-zinc-950 dark:text-zinc-50">
+                  {stock?.ticker ?? "-"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500 dark:text-zinc-400">통화</span>
+                <span className="text-zinc-950 dark:text-zinc-50">
+                  {stock?.currency ?? "-"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500 dark:text-zinc-400">시장</span>
+                <span className="text-zinc-950 dark:text-zinc-50">
+                  {stock?.market === "KR"
+                    ? "국내"
+                    : stock?.market === "US"
+                      ? "해외"
+                      : "-"}
+                </span>
+              </div>
             </div>
           )}
         </div>
