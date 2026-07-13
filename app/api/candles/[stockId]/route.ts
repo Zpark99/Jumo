@@ -1,5 +1,7 @@
 import type { NextRequest } from "next/server";
 
+import { getKisBaseUrl, getKisToken } from "@/lib/kis";
+
 type KisCandleResponse = {
   rt_cd: string;
   output2?: Array<{
@@ -21,33 +23,6 @@ export type Candle = {
 
 const CANDLE_DAYS = 100;
 
-let cachedToken: { value: string; expiresAt: number } | null = null;
-
-async function getKisToken(): Promise<string> {
-  if (cachedToken && Date.now() < cachedToken.expiresAt) {
-    return cachedToken.value;
-  }
-  const baseUrl = process.env.KIS_BASE_URL ?? "https://openapi.koreainvestment.com:9443";
-  const res = await fetch(
-    `${baseUrl}/oauth2/tokenP`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        grant_type: "client_credentials",
-        appkey: process.env.KIS_APP_KEY,
-        appsecret: process.env.KIS_APP_SECRET,
-      }),
-    }
-  );
-  const json = await res.json();
-  if (!json.access_token) throw new Error("KIS token error: " + JSON.stringify(json));
-  // expires_in은 초 단위, 30초 일찍 갱신
-  const ttlMs = (json.expires_in ?? 86400) * 1000 - 30_000;
-  cachedToken = { value: json.access_token as string, expiresAt: Date.now() + ttlMs };
-  return cachedToken.value;
-}
-
 function formatDate(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -56,7 +31,7 @@ function formatDate(d: Date): string {
 }
 
 async function fetchKisCandles(code: string, token: string): Promise<KisCandleResponse> {
-  const baseUrl = process.env.KIS_BASE_URL ?? "https://openapi.koreainvestment.com:9443";
+  const baseUrl = getKisBaseUrl();
   const url = new URL(
     `${baseUrl}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice`
   );
