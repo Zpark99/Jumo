@@ -68,3 +68,11 @@ gh CLI로 이슈를 먼저 만든다.
 - db pull / db diff 사용 시 enabled=false (레거시 migra 엔진)로 전환할 것
 
 ──────────────────────────────────────────
+
+## 🧪 거래엔진 테스트 실행
+
+- 엣지케이스(순차): `npx supabase db query --linked -f supabase/tests/20260623_execute_order_edge_cases.sql`
+- 동시성 증명(이중체결 방지): `node --env-file=.env.local supabase/tests/concurrency_execute_order.mjs`
+  - 원격 프로젝트에 실제 테스트 유저/종목을 생성해 RPC를 동시 호출하고, 끝나면 전부 정리함(반복 실행 가능)
+
+──────────────────────────────────────────

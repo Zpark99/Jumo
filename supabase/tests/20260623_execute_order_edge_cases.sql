@@ -92,6 +92,76 @@ begin
   end if;
   raise notice '[PASS] 케이스3 전량 매도 -> filled, holdings 행 삭제됨';
 
+  -- ---------------------------------------------------------------------
+  -- V6 케이스 준비: 별도 종목(TEST002)으로 보유 0/1/2주 경계를 검증
+  -- ---------------------------------------------------------------------
+  insert into public.stocks (id, ticker, market, currency, name_ko)
+  values ('TEST002', 'TEST002', 'KR', 'KRW', '테스트전자2');
+
+  insert into public.price_quotes (stock_id, price, fetched_at)
+  values ('TEST002', 10000, now());
+
+  -- ---------------------------------------------------------------------
+  -- 케이스 4: 보유 0주 상태에서 1주 매도 -> rejected (V6_INSUFFICIENT_HOLDINGS)
+  -- ---------------------------------------------------------------------
+  select * into v_result from public.execute_order('TEST002', 'sell', 1, 'market');
+
+  if v_result.status is distinct from 'rejected'
+     or v_result.reject_reason is distinct from 'V6_INSUFFICIENT_HOLDINGS' then
+    raise exception '[FAIL] 케이스4 보유0주매도: status=%, reason=%', v_result.status, v_result.reject_reason;
+  end if;
+  raise notice '[PASS] 케이스4 보유 0주 상태에서 1주 매도 -> rejected(V6_INSUFFICIENT_HOLDINGS)';
+
+  -- ---------------------------------------------------------------------
+  -- 케이스 5: 보유 1주 상태에서 2주 매도 -> rejected (V6_INSUFFICIENT_HOLDINGS)
+  -- ---------------------------------------------------------------------
+  select * into v_result from public.execute_order('TEST002', 'buy', 1, 'market');
+  if v_result.status is distinct from 'filled' then
+    raise exception '[FAIL] 케이스5 사전 매수 실패: status=%, reason=%', v_result.status, v_result.reject_reason;
+  end if;
+
+  select * into v_result from public.execute_order('TEST002', 'sell', 2, 'market');
+
+  if v_result.status is distinct from 'rejected'
+     or v_result.reject_reason is distinct from 'V6_INSUFFICIENT_HOLDINGS' then
+    raise exception '[FAIL] 케이스5 보유1주초과매도: status=%, reason=%', v_result.status, v_result.reject_reason;
+  end if;
+  raise notice '[PASS] 케이스5 보유 1주 상태에서 2주 매도 -> rejected(V6_INSUFFICIENT_HOLDINGS)';
+
+  -- ---------------------------------------------------------------------
+  -- 케이스 6: 보유 2주 상태에서 2주 매도(전량) -> filled, holdings 행 삭제
+  -- ---------------------------------------------------------------------
+  select * into v_result from public.execute_order('TEST002', 'buy', 1, 'market');
+  if v_result.status is distinct from 'filled' then
+    raise exception '[FAIL] 케이스6 추가매수 실패: status=%, reason=%', v_result.status, v_result.reject_reason;
+  end if;
+
+  select * into v_result from public.execute_order('TEST002', 'sell', 2, 'market');
+  if v_result.status is distinct from 'filled' then
+    raise exception '[FAIL] 케이스6 전량매도 실패: status=%, reason=%', v_result.status, v_result.reject_reason;
+  end if;
+
+  if exists (
+    select 1 from public.holdings
+    where account_id = v_account_id and stock_id = 'TEST002'
+  ) then
+    raise exception '[FAIL] 케이스6 전량매도 후에도 holdings 행이 남아있음';
+  end if;
+  raise notice '[PASS] 케이스6 보유 2주 상태에서 2주 매도(전량) -> filled, holdings 행 삭제됨';
+
+  -- ---------------------------------------------------------------------
+  -- 케이스 7: 매도 수량 음수(-1) -> rejected (V1_INVALID_QUANTITY)
+  -- (0주 매도는 케이스2에서 이미 검증됨; V1 검증이 V6보다 먼저 수행되므로
+  --  보유 여부와 무관하게 V1이 우선 발생한다)
+  -- ---------------------------------------------------------------------
+  select * into v_result from public.execute_order('TEST002', 'sell', -1, 'market');
+
+  if v_result.status is distinct from 'rejected'
+     or v_result.reject_reason is distinct from 'V1_INVALID_QUANTITY' then
+    raise exception '[FAIL] 케이스7 음수매도: status=%, reason=%', v_result.status, v_result.reject_reason;
+  end if;
+  raise notice '[PASS] 케이스7 매도 수량 음수(-1) -> rejected(V1_INVALID_QUANTITY)';
+
   raise notice '모든 엣지케이스 테스트 통과';
 end;
 $$;
