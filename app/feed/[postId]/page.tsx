@@ -91,10 +91,14 @@ async function fetchCommentsWithAuthors(postId: string) {
   }
 
   const authorIds = [...new Set(rows.map((r) => r.author_id))];
-  const { data: profiles } = await supabase
+  const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
     .select("id, nickname, icon")
     .in("id", authorIds);
+
+  if (profilesError) {
+    return { data: null as CommentRow[] | null, error: profilesError };
+  }
 
   const profileById = new Map(profiles?.map((p) => [p.id, p]) ?? []);
 
