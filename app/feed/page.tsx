@@ -287,30 +287,35 @@ export default function FeedPage() {
                     ? posts
                     : posts.slice(0, visibleCount)
                   ).map((post) => (
-                    <li key={post.id} className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        {post.author_icon && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={post.author_icon}
-                            alt=""
-                            className="h-6 w-6 rounded-full object-cover"
-                          />
-                        )}
-                        <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
-                          {post.author_nickname ?? "알 수 없음"}
-                        </span>
-                        <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                          · {relativeTime(post.created_at)}
-                        </span>
-                      </div>
-                      <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-800 dark:text-zinc-200">
-                        {post.content}
-                      </p>
-                      <div className="mt-3 flex gap-4 text-xs text-zinc-400 dark:text-zinc-500">
-                        <span>좋아요 {post.like_count}</span>
-                        <span>댓글 {post.comment_count}</span>
-                      </div>
+                    <li key={post.id}>
+                      <Link
+                        href={`/feed/${post.id}`}
+                        className="block px-6 py-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                      >
+                        <div className="flex items-center gap-2">
+                          {post.author_icon && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={post.author_icon}
+                              alt=""
+                              className="h-6 w-6 rounded-full object-cover"
+                            />
+                          )}
+                          <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                            {post.author_nickname ?? "알 수 없음"}
+                          </span>
+                          <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                            · {relativeTime(post.created_at)}
+                          </span>
+                        </div>
+                        <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-800 dark:text-zinc-200">
+                          {post.content}
+                        </p>
+                        <div className="mt-3 flex gap-4 text-xs text-zinc-400 dark:text-zinc-500">
+                          <span>좋아요 {post.like_count}</span>
+                          <span>댓글 {post.comment_count}</span>
+                        </div>
+                      </Link>
                     </li>
                   ))}
                 </ul>
