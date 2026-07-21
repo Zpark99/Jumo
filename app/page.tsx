@@ -175,22 +175,31 @@ export default function Home() {
             </div>
           </div>
 
-          {!userLoading && user && (
+          <div className="flex items-center gap-3">
             <Link
-              href="/account"
+              href="/feed"
               className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
             >
-              내 계좌
+              피드
             </Link>
-          )}
-          {!userLoading && !user && (
-            <Link
-              href="/login"
-              className="flex h-10 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
-            >
-              로그인
-            </Link>
-          )}
+
+            {!userLoading && user && (
+              <Link
+                href="/account"
+                className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+              >
+                내 계좌
+              </Link>
+            )}
+            {!userLoading && !user && (
+              <Link
+                href="/login"
+                className="flex h-10 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+              >
+                로그인
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* 관심종목 */}

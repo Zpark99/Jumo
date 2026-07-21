@@ -62,6 +62,11 @@ gh CLI로 이슈를 먼저 만든다.
 - 팔로우 기능 자체는 P3에서 유지 (프로필/팔로워 수 용도)
 - 마이그레이션 불필요 (현재 DB가 이미 전역 피드)
 
+### 피드 접근 정책 (2026-07-20)
+- posts/feed_posts 읽기는 authenticated 전용(RLS). 비로그인은 피드 목록 조회 불가.
+- 따라서 /feed는 비로그인 시 "로그인이 필요합니다" 안내로 대체.
+- 비로그인 열람을 허용하려면 RLS 완화 마이그레이션 필요.
+
 ### 마이그레이션 diff 엔진 주의 (2026-07-02)
 - supabase/config.toml의 [experimental.pgdelta] enabled=true는
   실제 변경이 있어도 "No schema changes found" 오탐을 냄 (확인된 버그성 동작)
