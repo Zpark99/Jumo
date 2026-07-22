@@ -5,8 +5,12 @@ import Link from "next/link";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
+import ReactionButtons, {
+  ReactionState,
+  ReactionType,
+} from "@/components/ReactionButtons";
 
-type FeedPost = {
+type FeedPostRow = {
   id: string;
   author_id: string;
   content: string;
@@ -17,6 +21,8 @@ type FeedPost = {
   dislike_count: number;
   comment_count: number;
 };
+
+type FeedPost = FeedPostRow & { my_reaction: ReactionType | null };
 
 type SortMode = "latest" | "popular";
 
@@ -56,6 +62,39 @@ function relativeTime(iso: string) {
   return new Date(iso).toLocaleDateString("ko-KR");
 }
 
+// post_reactions를 글마다 개별 조회하지 않고, 화면에 있는 글 id 전체에 대해 한 번에 조회해 병합한다.
+async function attachMyReactions(rows: FeedPostRow[], userId: string) {
+  if (rows.length === 0) {
+    return { data: [] as FeedPost[], error: null };
+  }
+
+  const ids = rows.map((r) => r.id);
+  const { data, error } = await supabase
+    .from("post_reactions")
+    .select("post_id, type")
+    .eq("user_id", userId)
+    .in("post_id", ids);
+
+  if (error) {
+    return {
+      data: rows.map((r) => ({ ...r, my_reaction: null as ReactionType | null })),
+      error,
+    };
+  }
+
+  const reactionByPost = new Map(
+    (data ?? []).map((r) => [r.post_id as string, r.type as ReactionType])
+  );
+
+  return {
+    data: rows.map((r) => ({
+      ...r,
+      my_reaction: reactionByPost.get(r.id) ?? null,
+    })),
+    error: null,
+  };
+}
+
 export default function FeedPage() {
   const { user, loading: userLoading } = useSupabaseUser();
 
@@ -66,6 +105,7 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reactionError, setReactionError] = useState<string | null>(null);
 
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -89,6 +129,7 @@ export default function FeedPage() {
 
   const loadFirstPage = useCallback(
     async (mode: SortMode) => {
+      if (!user) return;
       setLoading(true);
       setLoadError(null);
 
@@ -97,7 +138,10 @@ export default function FeedPage() {
         if (error) {
           setLoadError(error.message);
         } else {
-          setPosts(data ?? []);
+          const { data: withReactions, error: reactionErr } =
+            await attachMyReactions(data ?? [], user.id);
+          if (reactionErr) setLoadError(reactionErr.message);
+          setPosts(withReactions);
           setHasMoreLatest((data?.length ?? 0) === PAGE_SIZE);
         }
       } else {
@@ -105,14 +149,17 @@ export default function FeedPage() {
         if (error) {
           setLoadError(error.message);
         } else {
-          setPosts(sortByPopularity(data ?? []));
+          const { data: withReactions, error: reactionErr } =
+            await attachMyReactions(data ?? [], user.id);
+          if (reactionErr) setLoadError(reactionErr.message);
+          setPosts(sortByPopularity(withReactions));
           setVisibleCount(PAGE_SIZE);
         }
       }
 
       setLoading(false);
     },
-    [fetchLatestPage, fetchPopularBase]
+    [fetchLatestPage, fetchPopularBase, user]
   );
 
   useEffect(() => {
@@ -135,15 +182,35 @@ export default function FeedPage() {
   }, [user, userLoading, sortMode, loadFirstPage]);
 
   const loadMoreLatest = async () => {
+    if (!user) return;
     setLoadingMore(true);
     const { data, error } = await fetchLatestPage(posts.length);
     if (error) {
       setLoadError(error.message);
     } else {
-      setPosts((prev) => [...prev, ...(data ?? [])]);
+      const { data: withReactions, error: reactionErr } =
+        await attachMyReactions(data ?? [], user.id);
+      if (reactionErr) setLoadError(reactionErr.message);
+      setPosts((prev) => [...prev, ...withReactions]);
       setHasMoreLatest((data?.length ?? 0) === PAGE_SIZE);
     }
     setLoadingMore(false);
+  };
+
+  const handleReactionChange = (postId: string, next: ReactionState) => {
+    setPosts((prev) => {
+      const updated = prev.map((p) =>
+        p.id === postId
+          ? {
+              ...p,
+              like_count: next.likeCount,
+              dislike_count: next.dislikeCount,
+              my_reaction: next.myReaction,
+            }
+          : p
+      );
+      return sortMode === "popular" ? sortByPopularity(updated) : updated;
+    });
   };
 
   const handleSubmit = async () => {
@@ -271,6 +338,9 @@ export default function FeedPage() {
 
             {/* 목록 */}
             {loadError && <p className="text-sm text-red-500">{loadError}</p>}
+            {reactionError && (
+              <p className="text-sm text-red-500">{reactionError}</p>
+            )}
 
             {loading ? (
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -287,11 +357,11 @@ export default function FeedPage() {
                     ? posts
                     : posts.slice(0, visibleCount)
                   ).map((post) => (
-                    <li key={post.id}>
-                      <Link
-                        href={`/feed/${post.id}`}
-                        className="block px-6 py-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                      >
+                    <li
+                      key={post.id}
+                      className="px-6 py-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                    >
+                      <Link href={`/feed/${post.id}`} className="block">
                         <div className="flex items-center gap-2">
                           {post.author_icon && (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -311,11 +381,29 @@ export default function FeedPage() {
                         <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-800 dark:text-zinc-200">
                           {post.content}
                         </p>
-                        <div className="mt-3 flex gap-4 text-xs text-zinc-400 dark:text-zinc-500">
-                          <span>좋아요 {post.like_count}</span>
-                          <span>댓글 {post.comment_count}</span>
-                        </div>
                       </Link>
+                      <div className="mt-3 flex items-center gap-4">
+                        <ReactionButtons
+                          postId={post.id}
+                          userId={user?.id}
+                          disabled={!user}
+                          state={{
+                            likeCount: post.like_count,
+                            dislikeCount: post.dislike_count,
+                            myReaction: post.my_reaction,
+                          }}
+                          onChange={(next) =>
+                            handleReactionChange(post.id, next)
+                          }
+                          onError={setReactionError}
+                        />
+                        <Link
+                          href={`/feed/${post.id}`}
+                          className="text-xs text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+                        >
+                          댓글 {post.comment_count}
+                        </Link>
+                      </div>
                     </li>
                   ))}
                 </ul>

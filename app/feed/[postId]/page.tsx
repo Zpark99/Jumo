@@ -5,6 +5,10 @@ import Link from "next/link";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
+import ReactionButtons, {
+  ReactionState,
+  ReactionType,
+} from "@/components/ReactionButtons";
 
 type PostDetail = {
   id: string;
@@ -13,7 +17,9 @@ type PostDetail = {
   author_nickname: string | null;
   author_icon: string | null;
   like_count: number;
+  dislike_count: number;
   comment_count: number;
+  my_reaction: ReactionType | null;
 };
 
 type CommentRow = {
@@ -32,7 +38,7 @@ type CommentNode = CommentRow & { replies: CommentRow[] };
 const MAX_COMMENT_LENGTH = 300;
 
 const POST_SELECT =
-  "id, content, created_at, author_nickname, author_icon, like_count, comment_count";
+  "id, content, created_at, author_nickname, author_icon, like_count, dislike_count, comment_count";
 
 function relativeTime(iso: string) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -79,6 +85,15 @@ async function fetchPost(postId: string) {
     .maybeSingle();
 }
 
+async function fetchMyReaction(postId: string, userId: string) {
+  return supabase
+    .from("post_reactions")
+    .select("type")
+    .eq("post_id", postId)
+    .eq("user_id", userId)
+    .maybeSingle();
+}
+
 async function fetchCommentsWithAuthors(postId: string) {
   const { data: rows, error } = await supabase
     .from("comments")
@@ -111,12 +126,13 @@ async function fetchCommentsWithAuthors(postId: string) {
   return { data: merged, error: null };
 }
 
-async function loadPostAndComments(postId: string) {
-  const [postResult, commentsResult] = await Promise.all([
+async function loadPostAndComments(postId: string, userId: string) {
+  const [postResult, commentsResult, reactionResult] = await Promise.all([
     fetchPost(postId),
     fetchCommentsWithAuthors(postId),
+    fetchMyReaction(postId, userId),
   ]);
-  return { postResult, commentsResult };
+  return { postResult, commentsResult, reactionResult };
 }
 
 function CommentBody({ comment }: { comment: CommentRow }) {
@@ -158,6 +174,7 @@ export default function PostDetailPage({
   const [postLoading, setPostLoading] = useState(true);
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reactionError, setReactionError] = useState<string | null>(null);
 
   const [commentBody, setCommentBody] = useState("");
   const [commentSubmitting, setCommentSubmitting] = useState(false);
@@ -178,6 +195,7 @@ export default function PostDetailPage({
 
   useEffect(() => {
     if (userLoading || !user) return;
+    const userId = user.id;
 
     let active = true;
 
@@ -186,15 +204,24 @@ export default function PostDetailPage({
       setCommentsLoading(true);
       setLoadError(null);
 
-      const { postResult, commentsResult } = await loadPostAndComments(
-        postId
-      );
+      const { postResult, commentsResult, reactionResult } =
+        await loadPostAndComments(postId, userId);
       if (!active) return;
 
       if (postResult.error) {
         setLoadError(postResult.error.message);
       } else {
-        setPost(postResult.data ?? null);
+        setPost(
+          postResult.data
+            ? {
+                ...postResult.data,
+                my_reaction: reactionResult.data?.type ?? null,
+              }
+            : null
+        );
+      }
+      if (reactionResult.error) {
+        setLoadError(reactionResult.error.message);
       }
 
       if (commentsResult.error) {
@@ -214,10 +241,18 @@ export default function PostDetailPage({
   }, [user, userLoading, postId]);
 
   const refresh = useCallback(async () => {
-    const { postResult, commentsResult } = await loadPostAndComments(postId);
-    if (!postResult.error) setPost(postResult.data ?? null);
+    if (!user) return;
+    const { postResult, commentsResult, reactionResult } =
+      await loadPostAndComments(postId, user.id);
+    if (!postResult.error) {
+      setPost(
+        postResult.data
+          ? { ...postResult.data, my_reaction: reactionResult.data?.type ?? null }
+          : null
+      );
+    }
     if (!commentsResult.error) setComments(commentsResult.data ?? []);
-  }, [postId]);
+  }, [postId, user]);
 
   const insertComment = (content: string, parentId: string | null) => {
     if (!user) return Promise.resolve({ error: { message: "로그인이 필요합니다" } });
@@ -308,6 +343,19 @@ export default function PostDetailPage({
     await refresh();
   };
 
+  const handleReactionChange = (next: ReactionState) => {
+    setPost((prev) =>
+      prev
+        ? {
+            ...prev,
+            like_count: next.likeCount,
+            dislike_count: next.dislikeCount,
+            my_reaction: next.myReaction,
+          }
+        : prev
+    );
+  };
+
   const tree = buildCommentTree(comments);
   const deleteTargetHasReplies = deleteTarget
     ? comments.some((c) => c.parent_comment_id === deleteTarget)
@@ -377,10 +425,25 @@ export default function PostDetailPage({
                   <p className="mt-3 whitespace-pre-wrap text-sm text-zinc-800 dark:text-zinc-200">
                     {post.content}
                   </p>
-                  <div className="mt-4 flex gap-4 text-xs text-zinc-400 dark:text-zinc-500">
-                    <span>좋아요 {post.like_count}</span>
-                    <span>댓글 {post.comment_count}</span>
+                  <div className="mt-4 flex items-center gap-4">
+                    <ReactionButtons
+                      postId={post.id}
+                      userId={user.id}
+                      state={{
+                        likeCount: post.like_count,
+                        dislikeCount: post.dislike_count,
+                        myReaction: post.my_reaction,
+                      }}
+                      onChange={handleReactionChange}
+                      onError={setReactionError}
+                    />
+                    <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                      댓글 {post.comment_count}
+                    </span>
                   </div>
+                  {reactionError && (
+                    <p className="mt-2 text-sm text-red-500">{reactionError}</p>
+                  )}
                 </section>
 
                 {/* 댓글 목록 */}
