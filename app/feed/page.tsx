@@ -5,10 +5,13 @@ import Link from "next/link";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
+import { relativeTime } from "@/lib/relativeTime";
 import ReactionButtons, {
   ReactionState,
   ReactionType,
 } from "@/components/ReactionButtons";
+import QuotedPostCard, { QuotedPost } from "@/components/QuotedPostCard";
+import RepostModal from "@/components/RepostModal";
 
 type FeedPostRow = {
   id: string;
@@ -20,9 +23,13 @@ type FeedPostRow = {
   like_count: number;
   dislike_count: number;
   comment_count: number;
+  repost_of: string | null;
 };
 
-type FeedPost = FeedPostRow & { my_reaction: ReactionType | null };
+type FeedPost = FeedPostRow & {
+  my_reaction: ReactionType | null;
+  original: QuotedPost | null;
+};
 
 type SortMode = "latest" | "popular";
 
@@ -34,7 +41,10 @@ const POPULAR_FETCH_LIMIT = 1000;
 const MAX_BODY_LENGTH = 500;
 
 const FEED_SELECT =
-  "id, author_id, content, created_at, author_nickname, author_icon, like_count, dislike_count, comment_count";
+  "id, author_id, content, created_at, author_nickname, author_icon, like_count, dislike_count, comment_count, repost_of";
+
+const ORIGINAL_SELECT =
+  "id, content, created_at, author_nickname, author_icon, repost_of";
 
 function popularityScore(p: FeedPost) {
   return p.like_count - p.dislike_count + p.comment_count * 2;
@@ -48,50 +58,47 @@ function sortByPopularity(rows: FeedPost[]) {
   });
 }
 
-function relativeTime(iso: string) {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const diffSec = Math.floor(diffMs / 1000);
-
-  if (diffSec < 60) return "방금 전";
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}분 전`;
-  const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return `${diffHour}시간 전`;
-  const diffDay = Math.floor(diffHour / 24);
-  if (diffDay < 7) return `${diffDay}일 전`;
-  return new Date(iso).toLocaleDateString("ko-KR");
-}
-
-// post_reactions를 글마다 개별 조회하지 않고, 화면에 있는 글 id 전체에 대해 한 번에 조회해 병합한다.
-async function attachMyReactions(rows: FeedPostRow[], userId: string) {
+// post_reactions(내 반응)와 repost_of가 가리키는 원글을, 글마다 개별 조회하지
+// 않고 화면에 있는 글 id 전체에 대해 한 번씩만 조회해 병합한다.
+async function enrichPosts(rows: FeedPostRow[], userId: string) {
   if (rows.length === 0) {
     return { data: [] as FeedPost[], error: null };
   }
 
   const ids = rows.map((r) => r.id);
-  const { data, error } = await supabase
-    .from("post_reactions")
-    .select("post_id, type")
-    .eq("user_id", userId)
-    .in("post_id", ids);
+  const originalIds = [
+    ...new Set(
+      rows.filter((r) => r.repost_of).map((r) => r.repost_of as string)
+    ),
+  ];
 
-  if (error) {
-    return {
-      data: rows.map((r) => ({ ...r, my_reaction: null as ReactionType | null })),
-      error,
-    };
-  }
+  const [reactionsResult, originalsResult] = await Promise.all([
+    supabase
+      .from("post_reactions")
+      .select("post_id, type")
+      .eq("user_id", userId)
+      .in("post_id", ids),
+    originalIds.length > 0
+      ? supabase.from("posts_with_author").select(ORIGINAL_SELECT).in("id", originalIds)
+      : Promise.resolve({ data: [] as QuotedPost[], error: null }),
+  ]);
+
+  const error = reactionsResult.error ?? originalsResult.error ?? null;
 
   const reactionByPost = new Map(
-    (data ?? []).map((r) => [r.post_id as string, r.type as ReactionType])
+    (reactionsResult.data ?? []).map((r) => [r.post_id as string, r.type as ReactionType])
+  );
+  const originalById = new Map(
+    (originalsResult.data ?? []).map((o) => [(o as QuotedPost).id, o as QuotedPost])
   );
 
   return {
     data: rows.map((r) => ({
       ...r,
       my_reaction: reactionByPost.get(r.id) ?? null,
+      original: r.repost_of ? originalById.get(r.repost_of) ?? null : null,
     })),
-    error: null,
+    error,
   };
 }
 
@@ -110,6 +117,8 @@ export default function FeedPage() {
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [repostTarget, setRepostTarget] = useState<FeedPost | null>(null);
 
   const fetchLatestPage = useCallback((offset: number) => {
     return supabase
@@ -138,10 +147,12 @@ export default function FeedPage() {
         if (error) {
           setLoadError(error.message);
         } else {
-          const { data: withReactions, error: reactionErr } =
-            await attachMyReactions(data ?? [], user.id);
-          if (reactionErr) setLoadError(reactionErr.message);
-          setPosts(withReactions);
+          const { data: enriched, error: enrichErr } = await enrichPosts(
+            data ?? [],
+            user.id
+          );
+          if (enrichErr) setLoadError(enrichErr.message);
+          setPosts(enriched);
           setHasMoreLatest((data?.length ?? 0) === PAGE_SIZE);
         }
       } else {
@@ -149,10 +160,12 @@ export default function FeedPage() {
         if (error) {
           setLoadError(error.message);
         } else {
-          const { data: withReactions, error: reactionErr } =
-            await attachMyReactions(data ?? [], user.id);
-          if (reactionErr) setLoadError(reactionErr.message);
-          setPosts(sortByPopularity(withReactions));
+          const { data: enriched, error: enrichErr } = await enrichPosts(
+            data ?? [],
+            user.id
+          );
+          if (enrichErr) setLoadError(enrichErr.message);
+          setPosts(sortByPopularity(enriched));
           setVisibleCount(PAGE_SIZE);
         }
       }
@@ -188,10 +201,12 @@ export default function FeedPage() {
     if (error) {
       setLoadError(error.message);
     } else {
-      const { data: withReactions, error: reactionErr } =
-        await attachMyReactions(data ?? [], user.id);
-      if (reactionErr) setLoadError(reactionErr.message);
-      setPosts((prev) => [...prev, ...withReactions]);
+      const { data: enriched, error: enrichErr } = await enrichPosts(
+        data ?? [],
+        user.id
+      );
+      if (enrichErr) setLoadError(enrichErr.message);
+      setPosts((prev) => [...prev, ...enriched]);
       setHasMoreLatest((data?.length ?? 0) === PAGE_SIZE);
     }
     setLoadingMore(false);
@@ -244,6 +259,26 @@ export default function FeedPage() {
     setBody("");
     setSubmitting(false);
     await loadFirstPage(sortMode);
+  };
+
+  const handleRepostSubmit = async (comment: string) => {
+    if (!user || !repostTarget) {
+      return { error: "로그인이 필요합니다" };
+    }
+
+    const { error } = await supabase.from("posts").insert({
+      author_id: user.id,
+      stock_id: null,
+      content: comment,
+      repost_of: repostTarget.id,
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    await loadFirstPage(sortMode);
+    return { error: null };
   };
 
   return (
@@ -390,11 +425,13 @@ export default function FeedPage() {
                           {post.content}
                         </p>
                       </Link>
+                      {post.repost_of && (
+                        <QuotedPostCard original={post.original} />
+                      )}
                       <div className="mt-3 flex items-center gap-4">
                         <ReactionButtons
                           postId={post.id}
-                          userId={user?.id}
-                          disabled={!user}
+                          userId={user.id}
                           state={{
                             likeCount: post.like_count,
                             dislikeCount: post.dislike_count,
@@ -405,6 +442,13 @@ export default function FeedPage() {
                           }
                           onError={setReactionError}
                         />
+                        <button
+                          type="button"
+                          onClick={() => setRepostTarget(post)}
+                          className="text-xs font-medium text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+                        >
+                          리포스트
+                        </button>
                         <Link
                           href={`/feed/${post.id}`}
                           className="text-xs text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
@@ -441,6 +485,14 @@ export default function FeedPage() {
           </>
         )}
       </div>
+
+      {repostTarget && (
+        <RepostModal
+          original={repostTarget}
+          onClose={() => setRepostTarget(null)}
+          onSubmit={handleRepostSubmit}
+        />
+      )}
     </div>
   );
 }
