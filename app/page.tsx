@@ -108,12 +108,15 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!user) {
-      setAccountId(null);
-      setWatchlist({});
-      return;
+    async function run() {
+      if (!user) {
+        setAccountId(null);
+        setWatchlist({});
+        return;
+      }
+      await loadWatchlist();
     }
-    loadWatchlist();
+    run();
   }, [user, loadWatchlist]);
 
   const toggleWatchlist = async (stockId: string) => {
