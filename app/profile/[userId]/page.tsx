@@ -242,7 +242,14 @@ export default function PublicProfilePage({
                       </div>
                     </div>
 
-                    {!isOwnProfile && (
+                    {isOwnProfile ? (
+                      <Link
+                        href="/mypage"
+                        className="flex h-9 items-center justify-center rounded-full border border-zinc-200 px-5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                      >
+                        프로필 편집
+                      </Link>
+                    ) : (
                       <FollowButton
                         followerId={user.id}
                         targetUserId={userId}
