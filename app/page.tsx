@@ -185,6 +185,12 @@ export default function Home() {
             >
               피드
             </Link>
+            <Link
+              href="/ranking"
+              className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+            >
+              랭킹
+            </Link>
 
             {!userLoading && user && (
               <Link
