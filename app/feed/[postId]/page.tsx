@@ -5,10 +5,13 @@ import Link from "next/link";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
+import { relativeTime } from "@/lib/relativeTime";
 import ReactionButtons, {
   ReactionState,
   ReactionType,
 } from "@/components/ReactionButtons";
+import QuotedPostCard, { QuotedPost } from "@/components/QuotedPostCard";
+import RepostModal from "@/components/RepostModal";
 
 type PostDetail = {
   id: string;
@@ -21,6 +24,7 @@ type PostDetail = {
   dislike_count: number;
   comment_count: number;
   my_reaction: ReactionType | null;
+  repost_of: string | null;
 };
 
 type CommentRow = {
@@ -39,21 +43,10 @@ type CommentNode = CommentRow & { replies: CommentRow[] };
 const MAX_COMMENT_LENGTH = 300;
 
 const POST_SELECT =
-  "id, author_id, content, created_at, author_nickname, author_icon, like_count, dislike_count, comment_count";
+  "id, author_id, content, created_at, author_nickname, author_icon, like_count, dislike_count, comment_count, repost_of";
 
-function relativeTime(iso: string) {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const diffSec = Math.floor(diffMs / 1000);
-
-  if (diffSec < 60) return "방금 전";
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}분 전`;
-  const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return `${diffHour}시간 전`;
-  const diffDay = Math.floor(diffHour / 24);
-  if (diffDay < 7) return `${diffDay}일 전`;
-  return new Date(iso).toLocaleDateString("ko-KR");
-}
+const ORIGINAL_SELECT =
+  "id, content, created_at, author_nickname, author_icon, repost_of";
 
 // 최상위 댓글(parent_comment_id null) 아래에 대댓글을 1단계만 붙인다.
 // rows는 created_at asc로 정렬되어 들어오므로 순서가 그대로 유지된다.
@@ -92,6 +85,14 @@ async function fetchMyReaction(postId: string, userId: string) {
     .select("type")
     .eq("post_id", postId)
     .eq("user_id", userId)
+    .maybeSingle();
+}
+
+async function fetchOriginal(repostOfId: string) {
+  return supabase
+    .from("posts_with_author")
+    .select(ORIGINAL_SELECT)
+    .eq("id", repostOfId)
     .maybeSingle();
 }
 
@@ -199,6 +200,11 @@ export default function PostDetailPage({
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  const [original, setOriginal] = useState<QuotedPost | null | undefined>(
+    undefined
+  );
+  const [repostTarget, setRepostTarget] = useState<PostDetail | null>(null);
+
   useEffect(() => {
     if (userLoading || !user) return;
     const userId = user.id;
@@ -245,6 +251,31 @@ export default function PostDetailPage({
       active = false;
     };
   }, [user, userLoading, postId]);
+
+  useEffect(() => {
+    const repostOfId = post?.repost_of ?? null;
+
+    let active = true;
+
+    async function load() {
+      if (!repostOfId) {
+        setOriginal(null);
+        return;
+      }
+      const { data, error } = await fetchOriginal(repostOfId);
+      if (!active) return;
+      if (error) {
+        setOriginal(null);
+        return;
+      }
+      setOriginal(data ?? null);
+    }
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, [post?.repost_of]);
 
   const refresh = useCallback(async () => {
     if (!user) return;
@@ -362,6 +393,26 @@ export default function PostDetailPage({
     );
   };
 
+  const handleRepostSubmit = async (comment: string) => {
+    if (!user || !repostTarget) {
+      return { error: "로그인이 필요합니다" };
+    }
+
+    const { error } = await supabase.from("posts").insert({
+      author_id: user.id,
+      stock_id: null,
+      content: comment,
+      repost_of: repostTarget.id,
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    await refresh();
+    return { error: null };
+  };
+
   const tree = buildCommentTree(comments);
   const deleteTargetHasReplies = deleteTarget
     ? comments.some((c) => c.parent_comment_id === deleteTarget)
@@ -436,6 +487,7 @@ export default function PostDetailPage({
                   <p className="mt-3 whitespace-pre-wrap text-sm text-zinc-800 dark:text-zinc-200">
                     {post.content}
                   </p>
+                  {post.repost_of && <QuotedPostCard original={original} />}
                   <div className="mt-4 flex items-center gap-4">
                     <ReactionButtons
                       postId={post.id}
@@ -448,6 +500,13 @@ export default function PostDetailPage({
                       onChange={handleReactionChange}
                       onError={setReactionError}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setRepostTarget(post)}
+                      className="text-xs font-medium text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+                    >
+                      리포스트
+                    </button>
                     <span className="text-xs text-zinc-400 dark:text-zinc-500">
                       댓글 {post.comment_count}
                     </span>
@@ -627,6 +686,14 @@ export default function PostDetailPage({
             </div>
           </div>
         </div>
+      )}
+
+      {repostTarget && (
+        <RepostModal
+          original={repostTarget}
+          onClose={() => setRepostTarget(null)}
+          onSubmit={handleRepostSubmit}
+        />
       )}
     </div>
   );
