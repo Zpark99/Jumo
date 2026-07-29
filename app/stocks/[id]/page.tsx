@@ -14,6 +14,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
 import type { Candle } from "@/app/api/candles/[stockId]/route";
+import PostFeed from "@/components/PostFeed";
 
 // execute_order가 반환하는 V1~V7 거부 사유를 사용자에게 보여줄 문구로 매핑
 const REJECT_REASON_MESSAGES: Record<string, string> = {
@@ -106,7 +107,7 @@ export default function StockTradePage({
   const submittingRef = useRef(false);
 
   const [activeTab, setActiveTab] = useState<
-    "quote" | "chart" | "history" | "info"
+    "quote" | "chart" | "history" | "community" | "info"
   >("quote");
   const [candles, setCandles] = useState<Candle[] | null>(null);
   const [candlesLoading, setCandlesLoading] = useState(false);
@@ -368,6 +369,17 @@ export default function StockTradePage({
             </button>
             <button
               type="button"
+              onClick={() => setActiveTab("community")}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                activeTab === "community"
+                  ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
+                  : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              }`}
+            >
+              커뮤니티
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveTab("info")}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 activeTab === "info"
@@ -493,6 +505,16 @@ export default function StockTradePage({
                     ))}
                   </ul>
                 )}
+            </div>
+          ) : activeTab === "community" ? (
+            <div className="mt-8">
+              <PostFeed
+                userId={user.id}
+                table="community_posts"
+                stockId={stockId}
+                composePlaceholder={`${stockName}에 대한 생각을 남겨보세요`}
+                emptyMessage="이 종목의 첫 글을 남겨보세요"
+              />
             </div>
           ) : (
             <div className="mt-8 space-y-3 text-sm">
