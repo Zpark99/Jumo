@@ -12,6 +12,7 @@ import ReactionButtons, {
 
 type PostDetail = {
   id: string;
+  author_id: string;
   content: string;
   created_at: string;
   author_nickname: string | null;
@@ -38,7 +39,7 @@ type CommentNode = CommentRow & { replies: CommentRow[] };
 const MAX_COMMENT_LENGTH = 300;
 
 const POST_SELECT =
-  "id, content, created_at, author_nickname, author_icon, like_count, dislike_count, comment_count";
+  "id, author_id, content, created_at, author_nickname, author_icon, like_count, dislike_count, comment_count";
 
 function relativeTime(iso: string) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -139,17 +140,22 @@ function CommentBody({ comment }: { comment: CommentRow }) {
   return (
     <>
       <div className="flex items-center gap-2">
-        {comment.author_icon && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={comment.author_icon}
-            alt=""
-            className="h-5 w-5 rounded-full object-cover"
-          />
-        )}
-        <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
-          {comment.author_nickname ?? "알 수 없음"}
-        </span>
+        <Link
+          href={`/profile/${comment.author_id}`}
+          className="flex items-center gap-2 hover:underline"
+        >
+          {comment.author_icon && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={comment.author_icon}
+              alt=""
+              className="h-5 w-5 rounded-full object-cover"
+            />
+          )}
+          <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+            {comment.author_nickname ?? "알 수 없음"}
+          </span>
+        </Link>
         <span className="text-xs text-zinc-400 dark:text-zinc-500">
           · {relativeTime(comment.created_at)}
         </span>
@@ -407,17 +413,22 @@ export default function PostDetailPage({
                 {/* 글 상세 */}
                 <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
                   <div className="flex items-center gap-2">
-                    {post.author_icon && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={post.author_icon}
-                        alt=""
-                        className="h-6 w-6 rounded-full object-cover"
-                      />
-                    )}
-                    <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
-                      {post.author_nickname ?? "알 수 없음"}
-                    </span>
+                    <Link
+                      href={`/profile/${post.author_id}`}
+                      className="flex items-center gap-2 hover:underline"
+                    >
+                      {post.author_icon && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={post.author_icon}
+                          alt=""
+                          className="h-6 w-6 rounded-full object-cover"
+                        />
+                      )}
+                      <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                        {post.author_nickname ?? "알 수 없음"}
+                      </span>
+                    </Link>
                     <span className="text-xs text-zinc-400 dark:text-zinc-500">
                       · {relativeTime(post.created_at)}
                     </span>

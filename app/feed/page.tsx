@@ -361,8 +361,11 @@ export default function FeedPage() {
                       key={post.id}
                       className="px-6 py-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                     >
-                      <Link href={`/feed/${post.id}`} className="block">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/profile/${post.author_id}`}
+                          className="flex items-center gap-2 hover:underline"
+                        >
                           {post.author_icon && (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -374,10 +377,15 @@ export default function FeedPage() {
                           <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
                             {post.author_nickname ?? "알 수 없음"}
                           </span>
-                          <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                            · {relativeTime(post.created_at)}
-                          </span>
-                        </div>
+                        </Link>
+                        <Link
+                          href={`/feed/${post.id}`}
+                          className="text-xs text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+                        >
+                          · {relativeTime(post.created_at)}
+                        </Link>
+                      </div>
+                      <Link href={`/feed/${post.id}`} className="block">
                         <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-800 dark:text-zinc-200">
                           {post.content}
                         </p>
