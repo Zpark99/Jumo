@@ -378,9 +378,12 @@ export default function FeedPage() {
                             {post.author_nickname ?? "알 수 없음"}
                           </span>
                         </Link>
-                        <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                        <Link
+                          href={`/feed/${post.id}`}
+                          className="text-xs text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+                        >
                           · {relativeTime(post.created_at)}
-                        </span>
+                        </Link>
                       </div>
                       <Link href={`/feed/${post.id}`} className="block">
                         <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-800 dark:text-zinc-200">
