@@ -194,6 +194,14 @@ export default function Home() {
                 내 계좌
               </Link>
             )}
+            {!userLoading && user && (
+              <Link
+                href="/mypage"
+                className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+              >
+                마이페이지
+              </Link>
+            )}
             {!userLoading && !user && (
               <Link
                 href="/login"
