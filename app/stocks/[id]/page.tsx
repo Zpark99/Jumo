@@ -316,20 +316,20 @@ export default function StockTradePage({
   };
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 px-6 py-10 dark:bg-black">
+    <div className="flex flex-1 flex-col bg-page px-6 py-10">
       <div className="mx-auto grid w-full max-w-4xl gap-6 lg:grid-cols-[1fr_320px]">
         {/* 현재가 영역 */}
-        <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-3xl border border-border bg-card p-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">
+            <h1 className="text-xl font-semibold text-fg-primary">
               {stockName}
             </h1>
-            <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+            <span className="rounded-full bg-surface px-3 py-1 text-xs font-medium text-fg-secondary">
               지연 시세
             </span>
           </div>
 
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-fg-secondary">
             {stock?.ticker ?? stockId}
           </p>
 
@@ -339,8 +339,8 @@ export default function StockTradePage({
               onClick={() => setActiveTab("quote")}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 activeTab === "quote"
-                  ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
-                  : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  ? "bg-brand text-white"
+                  : "bg-surface text-fg-secondary hover:bg-border"
               }`}
             >
               시세
@@ -350,8 +350,8 @@ export default function StockTradePage({
               onClick={() => setActiveTab("chart")}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 activeTab === "chart"
-                  ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
-                  : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  ? "bg-brand text-white"
+                  : "bg-surface text-fg-secondary hover:bg-border"
               }`}
             >
               차트
@@ -361,8 +361,8 @@ export default function StockTradePage({
               onClick={() => setActiveTab("history")}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 activeTab === "history"
-                  ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
-                  : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  ? "bg-brand text-white"
+                  : "bg-surface text-fg-secondary hover:bg-border"
               }`}
             >
               거래내역
@@ -372,8 +372,8 @@ export default function StockTradePage({
               onClick={() => setActiveTab("community")}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 activeTab === "community"
-                  ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
-                  : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  ? "bg-brand text-white"
+                  : "bg-surface text-fg-secondary hover:bg-border"
               }`}
             >
               커뮤니티
@@ -383,8 +383,8 @@ export default function StockTradePage({
               onClick={() => setActiveTab("info")}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 activeTab === "info"
-                  ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
-                  : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  ? "bg-brand text-white"
+                  : "bg-surface text-fg-secondary hover:bg-border"
               }`}
             >
               정보
@@ -394,11 +394,11 @@ export default function StockTradePage({
           {activeTab === "quote" ? (
             <div className="mt-8">
               {quote ? (
-                <p className="text-4xl font-semibold text-zinc-950 dark:text-zinc-50">
+                <p className="text-4xl font-semibold text-fg-primary">
                   {formatPrice(quote.price, currency)}
                 </p>
               ) : (
-                <p className="text-4xl font-semibold text-zinc-400 dark:text-zinc-600">
+                <p className="text-4xl font-semibold text-fg-muted">
                   -
                 </p>
               )}
@@ -410,7 +410,7 @@ export default function StockTradePage({
           ) : activeTab === "chart" ? (
             <div className="mt-8 h-64">
               {candlesLoading && (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm text-fg-secondary">
                   불러오는 중...
                 </p>
               )}
@@ -425,14 +425,14 @@ export default function StockTradePage({
                     <XAxis
                       dataKey="date"
                       tickFormatter={formatCandleDate}
-                      tick={{ fontSize: 11, fill: "#71717a" }}
+                      tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}
                       tickLine={false}
-                      axisLine={{ stroke: "#a1a1aa" }}
+                      axisLine={{ stroke: "var(--color-text-muted)" }}
                       minTickGap={24}
                     />
                     <YAxis
                       domain={["dataMin", "dataMax"]}
-                      tick={{ fontSize: 11, fill: "#71717a" }}
+                      tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}
                       tickLine={false}
                       axisLine={false}
                       width={60}
@@ -445,7 +445,7 @@ export default function StockTradePage({
                     <Line
                       type="monotone"
                       dataKey="close"
-                      stroke="#71717a"
+                      stroke="var(--color-text-secondary)"
                       strokeWidth={2}
                       dot={false}
                     />
@@ -456,7 +456,7 @@ export default function StockTradePage({
           ) : activeTab === "history" ? (
             <div className="mt-8">
               {transactionsLoading && (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm text-fg-secondary">
                   불러오는 중...
                 </p>
               )}
@@ -469,7 +469,7 @@ export default function StockTradePage({
                 !transactionsError &&
                 transactions &&
                 transactions.length === 0 && (
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <p className="text-sm text-fg-secondary">
                     거래 내역이 없습니다
                   </p>
                 )}
@@ -478,7 +478,7 @@ export default function StockTradePage({
                 !transactionsError &&
                 transactions &&
                 transactions.length > 0 && (
-                  <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  <ul className="divide-y divide-border">
                     {transactions.map((t) => (
                       <li
                         key={t.id}
@@ -494,11 +494,11 @@ export default function StockTradePage({
                           >
                             {t.side === "buy" ? "매수" : "매도"}
                           </p>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          <p className="text-xs text-fg-secondary">
                             {new Date(t.executed_at).toLocaleString("ko-KR")}
                           </p>
                         </div>
-                        <p className="text-sm text-zinc-950 dark:text-zinc-50">
+                        <p className="text-sm text-fg-primary">
                           {t.quantity}주 · {formatPrice(t.price, t.currency)}
                         </p>
                       </li>
@@ -519,26 +519,26 @@ export default function StockTradePage({
           ) : (
             <div className="mt-8 space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">종목명</span>
-                <span className="text-zinc-950 dark:text-zinc-50">
+                <span className="text-fg-secondary">종목명</span>
+                <span className="text-fg-primary">
                   {stockName}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">코드</span>
-                <span className="text-zinc-950 dark:text-zinc-50">
+                <span className="text-fg-secondary">코드</span>
+                <span className="text-fg-primary">
                   {stock?.ticker ?? "-"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">통화</span>
-                <span className="text-zinc-950 dark:text-zinc-50">
+                <span className="text-fg-secondary">통화</span>
+                <span className="text-fg-primary">
                   {stock?.currency ?? "-"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">시장</span>
-                <span className="text-zinc-950 dark:text-zinc-50">
+                <span className="text-fg-secondary">시장</span>
+                <span className="text-fg-primary">
                   {stock?.market === "KR"
                     ? "국내"
                     : stock?.market === "US"
@@ -551,18 +551,18 @@ export default function StockTradePage({
         </div>
 
         {/* 주문 패널 */}
-        <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-3xl border border-border bg-card p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            <h2 className="text-sm font-medium text-fg-secondary">
               주문
             </h2>
-            <span className="text-xs text-zinc-400 dark:text-zinc-500">
+            <span className="text-xs text-fg-muted">
               보유 {holdingQty}주
             </span>
           </div>
 
           <div className="mt-4 space-y-3">
-            <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            <label className="block text-xs font-medium text-fg-secondary">
               수량
             </label>
             <input
@@ -573,7 +573,7 @@ export default function StockTradePage({
               onChange={(e) =>
                 setQuantity(Math.max(1, Math.floor(Number(e.target.value) || 1)))
               }
-              className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none focus:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-fg-primary outline-none focus:border-brand"
             />
 
             <button
@@ -584,7 +584,7 @@ export default function StockTradePage({
                 setShowConfirm(true);
               }}
               disabled={!quote || quantity <= 0}
-              className="flex w-full items-center justify-center rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:pointer-events-none disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="flex w-full items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed disabled:pointer-events-none disabled:opacity-50"
             >
               매수
             </button>
@@ -597,7 +597,7 @@ export default function StockTradePage({
                 setShowConfirm(true);
               }}
               disabled={!quote || quantity <= 0 || holdingQty <= 0}
-              className="flex w-full items-center justify-center rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-50 disabled:pointer-events-none disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-50 dark:hover:bg-zinc-800"
+              className="flex w-full items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-fg-primary transition-colors hover:bg-surface disabled:pointer-events-none disabled:opacity-50"
             >
               매도
             </button>
@@ -612,25 +612,25 @@ export default function StockTradePage({
       {/* 확인 모달 */}
       {showConfirm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 px-6">
-          <div className="w-full max-w-sm rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-            <h3 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+          <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-6">
+            <h3 className="text-lg font-semibold text-fg-primary">
               {side === "buy" ? "매수 주문 확인" : "매도 주문 확인"}
             </h3>
 
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">종목</span>
-                <span className="text-zinc-950 dark:text-zinc-50">{stockName}</span>
+                <span className="text-fg-secondary">종목</span>
+                <span className="text-fg-primary">{stockName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">수량</span>
-                <span className="text-zinc-950 dark:text-zinc-50">{quantity}주</span>
+                <span className="text-fg-secondary">수량</span>
+                <span className="text-fg-primary">{quantity}주</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">
+                <span className="text-fg-secondary">
                   {side === "buy" ? "예상금액" : "예상 회수금액"}
                 </span>
-                <span className="text-zinc-950 dark:text-zinc-50">
+                <span className="text-fg-primary">
                   {estimatedAmount !== null
                     ? formatPrice(estimatedAmount, currency)
                     : "-"}
@@ -656,7 +656,7 @@ export default function StockTradePage({
                   setOrderError(null);
                 }}
                 disabled={submitting}
-                className="flex-1 rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-50 disabled:pointer-events-none disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-50 dark:hover:bg-zinc-800"
+                className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-fg-primary transition-colors hover:bg-surface disabled:pointer-events-none disabled:opacity-50"
               >
                 취소
               </button>
@@ -666,7 +666,7 @@ export default function StockTradePage({
                 disabled={
                   submitting || (side === "sell" && quantity > holdingQty)
                 }
-                className="flex-1 rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:pointer-events-none disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                className="flex-1 rounded-xl bg-brand px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed disabled:pointer-events-none disabled:opacity-50"
               >
                 {submitting ? "처리 중..." : "확인"}
               </button>
