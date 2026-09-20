@@ -154,12 +154,12 @@ export default function Home() {
   const watchlistStocks = stocks.filter((s) => watchlist[s.id]);
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 px-6 py-10 dark:bg-black">
+    <div className="flex flex-1 flex-col bg-page px-6 py-10">
       <div className="mx-auto w-full max-w-2xl space-y-8">
         {/* 헤더 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">
+            <h1 className="text-xl font-semibold text-fg-primary">
               주모, 모의투자 플랫폼
             </h1>
             <div className="mt-2 flex items-center gap-2">
@@ -167,12 +167,12 @@ export default function Home() {
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
                   marketStatus.open
                     ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                    : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+                    : "bg-surface text-fg-secondary"
                 }`}
               >
                 {marketStatus.label}
               </span>
-              <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+              <span className="rounded-full bg-surface px-3 py-1 text-xs font-medium text-fg-secondary">
                 지연 시세
               </span>
             </div>
@@ -181,13 +181,13 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Link
               href="/feed"
-              className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+              className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
             >
               피드
             </Link>
             <Link
               href="/ranking"
-              className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+              className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
             >
               랭킹
             </Link>
@@ -195,7 +195,7 @@ export default function Home() {
             {!userLoading && user && (
               <Link
                 href="/account"
-                className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+                className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
               >
                 내 계좌
               </Link>
@@ -203,7 +203,7 @@ export default function Home() {
             {!userLoading && user && (
               <Link
                 href="/mypage"
-                className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+                className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
               >
                 마이페이지
               </Link>
@@ -211,7 +211,7 @@ export default function Home() {
             {!userLoading && !user && (
               <Link
                 href="/login"
-                className="flex h-10 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                className="flex h-10 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed"
               >
                 로그인
               </Link>
@@ -222,7 +222,7 @@ export default function Home() {
         {/* 관심종목 */}
         {user && watchlistStocks.length > 0 && (
           <section className="space-y-3">
-            <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            <h2 className="text-sm font-medium text-fg-secondary">
               관심종목
             </h2>
             <StockList
@@ -237,18 +237,18 @@ export default function Home() {
 
         {/* 전체 종목 */}
         <section className="space-y-3">
-          <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          <h2 className="text-sm font-medium text-fg-secondary">
             전체 종목
           </h2>
 
           {loadingStocks && (
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="text-sm text-fg-secondary">
               불러오는 중...
             </p>
           )}
 
           {!loadingStocks && stocks.length === 0 && (
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="text-sm text-fg-secondary">
               등록된 종목이 없습니다
             </p>
           )}
@@ -282,7 +282,7 @@ function StockList({
   canToggle: boolean;
 }) {
   return (
-    <ul className="divide-y divide-zinc-100 rounded-3xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+    <ul className="divide-y divide-border rounded-3xl border border-border bg-card">
       {stocks.map((s) => {
         const name = s.name_ko ?? s.name_en ?? s.id;
         const price = quotes[s.id];
@@ -292,7 +292,7 @@ function StockList({
           <li key={s.id}>
             <Link
               href={`/stocks/${s.id}`}
-              className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-surface"
             >
               <div className="flex items-center gap-3">
                 {canToggle && (
@@ -307,22 +307,22 @@ function StockList({
                     className={`text-lg leading-none ${
                       isWatched
                         ? "text-yellow-500"
-                        : "text-zinc-300 dark:text-zinc-600"
+                        : "text-fg-muted"
                     }`}
                   >
                     {isWatched ? "★" : "☆"}
                   </button>
                 )}
                 <div>
-                  <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                  <p className="text-sm font-medium text-fg-primary">
                     {name}
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="text-xs text-fg-secondary">
                     {s.ticker} · {s.market}
                   </p>
                 </div>
               </div>
-              <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+              <span className="text-sm font-medium text-fg-primary">
                 {price !== undefined ? formatPrice(price, s.currency) : "-"}
               </span>
             </Link>
