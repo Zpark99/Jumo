@@ -32,14 +32,15 @@ gh CLI로 이슈를 먼저 만든다.
    - 이슈를 완전히 끝내면 본문에 "Closes #N" 추가
 4. git push -u origin <브랜치명>
 
-### 5단계 — PR 생성
-- gh pr create로 PR 생성 (base: main). 본문에 요약 + "Closes #이슈번호".
-- 여기서 멈춘다. ⛔
+### 5, 6단계 — PR 생성 + 머지 여부 질문 (기능 → develop)
 
-### 6단계 — 머지 (⛔ 무조건 사용자 수동. Claude 자동 머지 절대 금지)
-- Claude는 어떤 경우에도 머지하지 않는다.
-- 사용자가 GitHub에서 PR "Files changed"를 직접 검토하고 머지한다.
-- 사용자가 "머지 완료"라고 알리기 전까지 다음 단계로 넘어가지 않는다.
+- `gh pr create --base develop` 로 PR 생성. 본문에 요약 + "Closes #이슈번호".
+- PR 생성 후, **사용자에게 머지 여부를 질문한다:**
+    
+    > "PR #N 생성했습니다. develop으로 머지할까요? (검토 후 직접 하시려면 '내가 할게')"
+    > 
+- **사용자가 "머지해" / "OK" 등 명시적으로 승인하면** → Claude가 머지 실행(`gh pr merge --squash`).
+- **사용자가 "내가 할게" / 무응답이면** → 멈춘다. 임의 머지 금지.
 
 ### 7단계 — 머지 후 로컬 정리 (사용자 "머지 완료" 확인 후)
 - git checkout main && git pull origin main
