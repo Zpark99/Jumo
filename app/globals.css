@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
+/* 다크 모드: html에 .dark 클래스가 있을 때 (OS 설정 자동 추종 아님) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 디자인 토큰 — Figma 코드 변수와 1:1. 라이트 = :root, 다크 = .dark */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-bg-page: #ffffff;
+  --color-bg-surface: #f2f4f6;
+  --color-bg-card: #ffffff;
+  --color-text-primary: #191f28;
+  --color-text-secondary: #4e5968;
+  --color-text-muted: #8b95a1;
+  --color-brand-primary: #6c5ce7;
 }
 
+/*
+ * 유틸 이름이 변수 이름과 같은 토큰(border, brand-pressed, brand-tint, price-*)은
+ * @theme inline 별칭이 자기 참조가 되므로 일반 @theme에 라이트 값을 두고 .dark에서 덮어쓴다.
+ */
+@theme {
+  --color-border: #e5e8eb;
+  --color-brand-pressed: #574fcf;
+  --color-brand-tint: #eeecfd;
+  --color-price-up: #f04452;
+  --color-price-down: #3182f6;
+  --color-price-flat: #6b7684;
+}
+
+.dark {
+  --color-bg-page: #16181d;
+  --color-bg-surface: #1e2127;
+  --color-bg-card: #23262e;
+  --color-border: #2b2f37;
+  --color-text-primary: #eaecef;
+  --color-text-secondary: #a7b0bc;
+  --color-text-muted: #6e7885;
+  --color-brand-primary: #8b7df2;
+  --color-brand-pressed: #7568e0;
+  --color-brand-tint: #272348;
+  --color-price-up: #ff5c68;
+  --color-price-down: #4c97ff;
+  --color-price-flat: #8b95a1;
+}
+
+/* 사용: bg-page bg-surface bg-card border-border text-fg-primary bg-brand text-price-up ...
+   (text-* 유틸 충돌 방지를 위해 텍스트 색은 fg-*) */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-page: var(--color-bg-page);
+  --color-surface: var(--color-bg-surface);
+  --color-card: var(--color-bg-card);
+  --color-fg-primary: var(--color-text-primary);
+  --color-fg-secondary: var(--color-text-secondary);
+  --color-fg-muted: var(--color-text-muted);
+  --color-brand: var(--color-brand-primary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
   font-family: Arial, Helvetica, sans-serif;
 }
