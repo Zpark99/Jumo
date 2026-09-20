@@ -153,15 +153,15 @@ function CommentBody({ comment }: { comment: CommentRow }) {
               className="h-5 w-5 rounded-full object-cover"
             />
           )}
-          <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+          <span className="text-sm font-medium text-fg-primary">
             {comment.author_nickname ?? "알 수 없음"}
           </span>
         </Link>
-        <span className="text-xs text-zinc-400 dark:text-zinc-500">
+        <span className="text-xs text-fg-muted">
           · {relativeTime(comment.created_at)}
         </span>
       </div>
-      <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-800 dark:text-zinc-200">
+      <p className="mt-1 whitespace-pre-wrap text-sm text-fg-primary">
         {comment.content}
       </p>
     </>
@@ -419,28 +419,28 @@ export default function PostDetailPage({
     : false;
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 px-6 py-10 dark:bg-black">
+    <div className="flex flex-1 flex-col bg-page px-6 py-10">
       <div className="mx-auto w-full max-w-2xl space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">
+          <h1 className="text-xl font-semibold text-fg-primary">
             글 상세
           </h1>
           <Link
             href="/feed"
-            className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+            className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
           >
             피드로
           </Link>
         </div>
 
         {!userLoading && !user && (
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-900">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <section className="rounded-3xl border border-border bg-card p-6 text-center">
+            <p className="text-sm text-fg-secondary">
               글을 보려면 로그인이 필요합니다
             </p>
             <Link
               href="/login"
-              className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed"
             >
               로그인
             </Link>
@@ -452,17 +452,17 @@ export default function PostDetailPage({
             {loadError && <p className="text-sm text-red-500">{loadError}</p>}
 
             {postLoading ? (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm text-fg-secondary">
                 불러오는 중...
               </p>
             ) : !post ? (
-              <p className="rounded-3xl border border-zinc-200 bg-white p-6 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+              <p className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-fg-secondary">
                 글을 찾을 수 없습니다
               </p>
             ) : (
               <>
                 {/* 글 상세 */}
-                <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                <section className="rounded-3xl border border-border bg-card p-6">
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/profile/${post.author_id}`}
@@ -476,15 +476,15 @@ export default function PostDetailPage({
                           className="h-6 w-6 rounded-full object-cover"
                         />
                       )}
-                      <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                      <span className="text-sm font-medium text-fg-primary">
                         {post.author_nickname ?? "알 수 없음"}
                       </span>
                     </Link>
-                    <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                    <span className="text-xs text-fg-muted">
                       · {relativeTime(post.created_at)}
                     </span>
                   </div>
-                  <p className="mt-3 whitespace-pre-wrap text-sm text-zinc-800 dark:text-zinc-200">
+                  <p className="mt-3 whitespace-pre-wrap text-sm text-fg-primary">
                     {post.content}
                   </p>
                   {post.repost_of && <QuotedPostCard original={original} />}
@@ -503,11 +503,11 @@ export default function PostDetailPage({
                     <button
                       type="button"
                       onClick={() => setRepostTarget(post)}
-                      className="text-xs font-medium text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+                      className="text-xs font-medium text-fg-muted hover:text-fg-secondary"
                     >
                       리포스트
                     </button>
-                    <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                    <span className="text-xs text-fg-muted">
                       댓글 {post.comment_count}
                     </span>
                   </div>
@@ -518,23 +518,23 @@ export default function PostDetailPage({
 
                 {/* 댓글 목록 */}
                 {commentsLoading ? (
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <p className="text-sm text-fg-secondary">
                     댓글 불러오는 중...
                   </p>
                 ) : tree.length === 0 ? (
-                  <p className="rounded-3xl border border-zinc-200 bg-white p-6 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+                  <p className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-fg-secondary">
                     첫 댓글을 남겨보세요
                   </p>
                 ) : (
-                  <ul className="divide-y divide-zinc-100 rounded-3xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+                  <ul className="divide-y divide-border rounded-3xl border border-border bg-card">
                     {tree.map((node) => (
                       <li key={node.id} className="px-6 py-4">
                         <CommentBody comment={node} />
-                        <div className="mt-2 flex gap-3 text-xs text-zinc-400 dark:text-zinc-500">
+                        <div className="mt-2 flex gap-3 text-xs text-fg-muted">
                           <button
                             type="button"
                             onClick={() => toggleReply(node.id)}
-                            className="font-medium hover:text-zinc-700 dark:hover:text-zinc-300"
+                            className="font-medium hover:text-fg-secondary"
                           >
                             답글
                           </button>
@@ -550,24 +550,24 @@ export default function PostDetailPage({
                         </div>
 
                         {replyTarget === node.id && (
-                          <div className="mt-3 space-y-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-black">
+                          <div className="mt-3 space-y-2 rounded-2xl border border-border bg-surface p-3">
                             <textarea
                               value={replyBody}
                               onChange={(e) => setReplyBody(e.target.value)}
                               placeholder="답글을 입력하세요"
                               rows={2}
                               maxLength={MAX_COMMENT_LENGTH}
-                              className="w-full resize-none rounded-xl border border-zinc-200 bg-white p-3 text-sm text-zinc-950 outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-600"
+                              className="w-full resize-none rounded-xl border border-border bg-card p-3 text-sm text-fg-primary outline-none focus:border-brand"
                             />
                             <div className="flex items-center justify-between">
-                              <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                              <span className="text-xs text-fg-muted">
                                 {replyBody.trim().length}/{MAX_COMMENT_LENGTH}
                               </span>
                               <div className="flex gap-2">
                                 <button
                                   type="button"
                                   onClick={() => toggleReply(node.id)}
-                                  className="rounded-full px-3 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                                  className="rounded-full px-3 py-1 text-xs font-medium text-fg-secondary hover:bg-border"
                                 >
                                   취소
                                 </button>
@@ -575,7 +575,7 @@ export default function PostDetailPage({
                                   type="button"
                                   onClick={() => handleSubmitReply(node.id)}
                                   disabled={replySubmitting}
-                                  className="rounded-full bg-zinc-950 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                                  className="rounded-full bg-brand px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-brand-pressed disabled:opacity-50"
                                 >
                                   {replySubmitting ? "등록 중..." : "등록"}
                                 </button>
@@ -590,12 +590,12 @@ export default function PostDetailPage({
                         )}
 
                         {node.replies.length > 0 && (
-                          <ul className="mt-3 ml-6 space-y-3 border-l border-zinc-100 pl-4 dark:border-zinc-800">
+                          <ul className="mt-3 ml-6 space-y-3 border-l border-border pl-4">
                             {node.replies.map((reply) => (
                               <li key={reply.id}>
                                 <CommentBody comment={reply} />
                                 {user.id === reply.author_id && (
-                                  <div className="mt-2 flex gap-3 text-xs text-zinc-400 dark:text-zinc-500">
+                                  <div className="mt-2 flex gap-3 text-xs text-fg-muted">
                                     <button
                                       type="button"
                                       onClick={() => setDeleteTarget(reply.id)}
@@ -615,24 +615,24 @@ export default function PostDetailPage({
                 )}
 
                 {/* 댓글 작성 */}
-                <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                <section className="rounded-3xl border border-border bg-card p-6">
                   <textarea
                     value={commentBody}
                     onChange={(e) => setCommentBody(e.target.value)}
                     placeholder="댓글을 입력하세요"
                     rows={3}
                     maxLength={MAX_COMMENT_LENGTH}
-                    className="w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-950 outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-black dark:text-zinc-50 dark:focus:border-zinc-600"
+                    className="w-full resize-none rounded-2xl border border-border bg-surface p-4 text-sm text-fg-primary outline-none focus:border-brand"
                   />
                   <div className="mt-3 flex items-center justify-between">
-                    <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                    <span className="text-xs text-fg-muted">
                       {commentBody.trim().length}/{MAX_COMMENT_LENGTH}
                     </span>
                     <button
                       type="button"
                       onClick={handleSubmitComment}
                       disabled={commentSubmitting}
-                      className="flex h-9 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                      className="flex h-9 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed disabled:opacity-50"
                     >
                       {commentSubmitting ? "등록 중..." : "등록"}
                     </button>
@@ -652,11 +652,11 @@ export default function PostDetailPage({
       {/* 삭제 확인 모달 */}
       {deleteTarget && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 px-6">
-          <div className="w-full max-w-sm rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-            <h3 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+          <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-6">
+            <h3 className="text-lg font-semibold text-fg-primary">
               댓글 삭제
             </h3>
-            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mt-2 text-sm text-fg-secondary">
               정말 삭제하시겠습니까?
               {deleteTargetHasReplies && " 달려있는 답글도 함께 삭제됩니다."}
             </p>
@@ -671,7 +671,7 @@ export default function PostDetailPage({
                   setDeleteError(null);
                 }}
                 disabled={deleting}
-                className="flex-1 rounded-full border border-zinc-200 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                className="flex-1 rounded-full border border-border py-2 text-sm font-medium text-fg-secondary transition-colors hover:bg-surface disabled:opacity-50"
               >
                 취소
               </button>
