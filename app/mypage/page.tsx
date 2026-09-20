@@ -132,28 +132,28 @@ export default function MyPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 px-6 py-10 dark:bg-black">
+    <div className="flex flex-1 flex-col bg-page px-6 py-10">
       <div className="mx-auto w-full max-w-2xl space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">
+          <h1 className="text-xl font-semibold text-fg-primary">
             마이페이지
           </h1>
           <Link
             href="/"
-            className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+            className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
           >
             홈으로
           </Link>
         </div>
 
         {!userLoading && !user && (
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-900">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <section className="rounded-3xl border border-border bg-card p-6 text-center">
+            <p className="text-sm text-fg-secondary">
               마이페이지를 보려면 로그인이 필요합니다
             </p>
             <Link
               href="/login"
-              className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed"
             >
               로그인
             </Link>
@@ -163,12 +163,12 @@ export default function MyPage() {
         {!userLoading && user && (
           <>
             {loading ? (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm text-fg-secondary">
                 불러오는 중...
               </p>
             ) : (
-              <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              <section className="rounded-3xl border border-border bg-card p-6">
+                <h2 className="text-sm font-medium text-fg-secondary">
                   프로필 편집
                 </h2>
 
@@ -186,7 +186,7 @@ export default function MyPage() {
                       className="h-16 w-16 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="h-16 w-16 rounded-full bg-zinc-100 dark:bg-zinc-800" />
+                    <div className="h-16 w-16 rounded-full bg-surface" />
                   )}
                   <div className="flex gap-2">
                     {ICON_PRESETS.map((preset) => (
@@ -197,7 +197,7 @@ export default function MyPage() {
                         onClick={() =>
                           setIcon(buildIconDataUri(getInitial(nickname), preset.hex))
                         }
-                        className="h-8 w-8 rounded-full ring-2 ring-transparent transition-all hover:ring-zinc-300 dark:hover:ring-zinc-600"
+                        className="h-8 w-8 rounded-full ring-2 ring-transparent transition-all hover:ring-fg-muted"
                         style={{ backgroundColor: preset.hex }}
                       />
                     ))}
@@ -206,7 +206,7 @@ export default function MyPage() {
 
                 {/* 닉네임 */}
                 <div className="mt-6">
-                  <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                  <label className="text-xs font-medium text-fg-secondary">
                     닉네임
                   </label>
                   <input
@@ -214,14 +214,14 @@ export default function MyPage() {
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
                     maxLength={MAX_NICKNAME_LENGTH}
-                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-950 outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-black dark:text-zinc-50 dark:focus:border-zinc-600"
+                    className="mt-1 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-fg-primary outline-none focus:border-brand"
                   />
                   <div className="mt-1 flex justify-end">
                     <span
                       className={`text-xs ${
                         nickname.trim().length > MAX_NICKNAME_LENGTH
                           ? "text-red-500"
-                          : "text-zinc-400 dark:text-zinc-500"
+                          : "text-fg-muted"
                       }`}
                     >
                       {nickname.trim().length}/{MAX_NICKNAME_LENGTH}
@@ -231,7 +231,7 @@ export default function MyPage() {
 
                 {/* 소개 */}
                 <div className="mt-4">
-                  <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                  <label className="text-xs font-medium text-fg-secondary">
                     소개
                   </label>
                   <textarea
@@ -240,14 +240,14 @@ export default function MyPage() {
                     placeholder="자기소개를 입력해주세요 (선택)"
                     rows={3}
                     maxLength={MAX_BIO_LENGTH}
-                    className="mt-1 w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-950 outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-black dark:text-zinc-50 dark:focus:border-zinc-600"
+                    className="mt-1 w-full resize-none rounded-2xl border border-border bg-surface p-4 text-sm text-fg-primary outline-none focus:border-brand"
                   />
                   <div className="mt-1 flex justify-end">
                     <span
                       className={`text-xs ${
                         bio.trim().length > MAX_BIO_LENGTH
                           ? "text-red-500"
-                          : "text-zinc-400 dark:text-zinc-500"
+                          : "text-fg-muted"
                       }`}
                     >
                       {bio.trim().length}/{MAX_BIO_LENGTH}
@@ -263,7 +263,7 @@ export default function MyPage() {
                     type="button"
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex h-9 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                    className="flex h-9 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed disabled:opacity-50"
                   >
                     {saving ? "저장 중..." : "저장"}
                   </button>
