@@ -16,7 +16,7 @@ gh CLI로 이슈를 먼저 만든다.
 - 생성 후 이슈 번호를 사용자에게 알린다.
 
 ### 2단계 — 브랜치 생성
-- git checkout main && git pull origin main (최신화 먼저)
+- git checkout develop && git pull origin develop (최신화 먼저)
 - git checkout -b <type>/<간단한-설명>  (예: fix/quote-validation)
 - 브랜치명에 `#`나 공백 금지. type은 feat/fix/refactor/chore.
 
@@ -43,12 +43,12 @@ gh CLI로 이슈를 먼저 만든다.
 - **사용자가 "내가 할게" / 무응답이면** → 멈춘다. 임의 머지 금지.
 
 ### 7단계 — 머지 후 로컬 정리 (사용자 "머지 완료" 확인 후)
-- git checkout main && git pull origin main
+- git checkout develop && git pull origin develop
 - git branch -d <작업브랜치>
 - 필요 시 마일스톤 상태 확인.
 
 ### 규칙 요약
-- 이슈 없이 작업 시작 금지. 브랜치 없이 main 직접 작업 금지.
+- 이슈 없이 작업 시작 금지. 브랜치 없이 main/develop 직접 작업 금지.
 - 머지는 항상 사용자 승인 후. Claude는 5단계(PR 생성)에서 멈춘다.
 - 커밋 메시지는 항상 `(#이슈번호)` 포함.
 
