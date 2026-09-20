@@ -133,33 +133,33 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 px-6 py-10 dark:bg-black">
+    <div className="flex flex-1 flex-col bg-page px-6 py-10">
       <div className="mx-auto w-full max-w-3xl space-y-6">
-        <h1 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">
+        <h1 className="text-xl font-semibold text-fg-primary">
           내 계좌
         </h1>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
 
         {loading ? (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">불러오는 중...</p>
+          <p className="text-sm text-fg-secondary">불러오는 중...</p>
         ) : (
           <>
             {/* 현금 잔고 */}
-            <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            <section className="rounded-3xl border border-border bg-card p-6">
+              <h2 className="text-sm font-medium text-fg-secondary">
                 현금 잔고
               </h2>
               <div className="mt-4 grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">KRW</p>
-                  <p className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+                  <p className="text-xs text-fg-secondary">KRW</p>
+                  <p className="text-lg font-semibold text-fg-primary">
                     {formatPrice(account?.cash_krw ?? 0, "KRW")}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">USD</p>
-                  <p className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+                  <p className="text-xs text-fg-secondary">USD</p>
+                  <p className="text-lg font-semibold text-fg-primary">
                     {formatPrice(account?.cash_usd ?? 0, "USD")}
                   </p>
                 </div>
@@ -167,17 +167,17 @@ export default function AccountPage() {
             </section>
 
             {/* 보유 종목 */}
-            <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            <section className="rounded-3xl border border-border bg-card p-6">
+              <h2 className="text-sm font-medium text-fg-secondary">
                 보유 종목
               </h2>
 
               {holdings.length === 0 ? (
-                <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
+                <p className="mt-4 text-sm text-fg-secondary">
                   보유 중인 종목이 없습니다
                 </p>
               ) : (
-                <ul className="mt-4 divide-y divide-zinc-100 dark:divide-zinc-800">
+                <ul className="mt-4 divide-y divide-border">
                   {holdings.map((h) => {
                     const pnl =
                       h.currentPrice !== null
@@ -191,17 +191,17 @@ export default function AccountPage() {
                         className="flex items-center justify-between py-3"
                       >
                         <div>
-                          <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                          <p className="text-sm font-medium text-fg-primary">
                             {name}
                           </p>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          <p className="text-xs text-fg-secondary">
                             {h.quantity}주 · 평단 {formatPrice(h.avg_price, h.currency)}
                           </p>
                         </div>
                         <p
                           className={
                             pnl === null
-                              ? "text-sm text-zinc-400 dark:text-zinc-600"
+                              ? "text-sm text-fg-muted"
                               : pnl >= 0
                                 ? "text-sm font-medium text-green-700 dark:text-green-400"
                                 : "text-sm font-medium text-red-500"
@@ -217,17 +217,17 @@ export default function AccountPage() {
             </section>
 
             {/* 최근 체결내역 */}
-            <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            <section className="rounded-3xl border border-border bg-card p-6">
+              <h2 className="text-sm font-medium text-fg-secondary">
                 최근 체결내역
               </h2>
 
               {transactions.length === 0 ? (
-                <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
+                <p className="mt-4 text-sm text-fg-secondary">
                   체결 내역이 없습니다
                 </p>
               ) : (
-                <ul className="mt-4 divide-y divide-zinc-100 dark:divide-zinc-800">
+                <ul className="mt-4 divide-y divide-border">
                   {transactions.map((t) => {
                     const name = t.stocks?.name_ko ?? t.stocks?.name_en ?? t.stock_id;
 
@@ -237,17 +237,17 @@ export default function AccountPage() {
                         className="flex items-center justify-between py-3"
                       >
                         <div>
-                          <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                          <p className="text-sm font-medium text-fg-primary">
                             {name}{" "}
-                            <span className="text-zinc-400 dark:text-zinc-500">
+                            <span className="text-fg-muted">
                               ({t.side === "buy" ? "매수" : "매도"})
                             </span>
                           </p>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          <p className="text-xs text-fg-secondary">
                             {new Date(t.executed_at).toLocaleString("ko-KR")}
                           </p>
                         </div>
-                        <p className="text-sm text-zinc-950 dark:text-zinc-50">
+                        <p className="text-sm text-fg-primary">
                           {t.quantity}주 · {formatPrice(t.price, t.currency)}
                         </p>
                       </li>
