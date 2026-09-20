@@ -2,6 +2,7 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
@@ -174,6 +175,7 @@ export default function PostDetailPage({
   params: Promise<{ postId: string }>;
 }) {
   const { postId } = use(params);
+  const router = useRouter();
   const { user, loading: userLoading } = useSupabaseUser();
 
   const [post, setPost] = useState<PostDetail | null>(null);
@@ -380,6 +382,32 @@ export default function PostDetailPage({
     await refresh();
   };
 
+  const handleDeletePost = async (targetPostId: string) => {
+    setDeleting(true);
+    setDeleteError(null);
+
+    // RLS로 막히거나 이미 지워진 글은 에러 없이 0행이 반환되므로 행 수로 판별
+    const { data, error } = await supabase
+      .from("posts")
+      .delete()
+      .eq("id", targetPostId)
+      .select("id");
+
+    if (error) {
+      setDeleteError(error.message);
+      setDeleting(false);
+      return;
+    }
+    if (!data || data.length === 0) {
+      setDeleteError("삭제할 수 없는 글입니다 (권한이 없거나 이미 삭제됨)");
+      setDeleting(false);
+      return;
+    }
+
+    // deleting은 유지해 이동 중 중복 클릭을 막는다
+    router.replace("/feed");
+  };
+
   const handleReactionChange = (next: ReactionState) => {
     setPost((prev) =>
       prev
@@ -414,6 +442,7 @@ export default function PostDetailPage({
   };
 
   const tree = buildCommentTree(comments);
+  const deletingPost = !!post && deleteTarget === post.id;
   const deleteTargetHasReplies = deleteTarget
     ? comments.some((c) => c.parent_comment_id === deleteTarget)
     : false;
@@ -510,6 +539,18 @@ export default function PostDetailPage({
                     <span className="text-xs text-fg-muted">
                       댓글 {post.comment_count}
                     </span>
+                    {user.id === post.author_id && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDeleteError(null);
+                          setDeleteTarget(post.id);
+                        }}
+                        className="ml-auto text-xs font-medium text-fg-muted hover:text-red-500"
+                      >
+                        삭제
+                      </button>
+                    )}
                   </div>
                   {reactionError && (
                     <p className="mt-2 text-sm text-red-500">{reactionError}</p>
@@ -654,10 +695,12 @@ export default function PostDetailPage({
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 px-6">
           <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-6">
             <h3 className="text-lg font-semibold text-fg-primary">
-              댓글 삭제
+              {deletingPost ? "글 삭제" : "댓글 삭제"}
             </h3>
             <p className="mt-2 text-sm text-fg-secondary">
               정말 삭제하시겠습니까?
+              {deletingPost &&
+                " 댓글과 반응이 함께 삭제되고, 이 글을 인용한 리포스트에서는 인용이 사라집니다."}
               {deleteTargetHasReplies && " 달려있는 답글도 함께 삭제됩니다."}
             </p>
             {deleteError && (
@@ -677,7 +720,11 @@ export default function PostDetailPage({
               </button>
               <button
                 type="button"
-                onClick={() => handleDeleteComment(deleteTarget)}
+                onClick={() =>
+                  deletingPost
+                    ? handleDeletePost(deleteTarget)
+                    : handleDeleteComment(deleteTarget)
+                }
                 disabled={deleting}
                 className="flex-1 rounded-full bg-red-500 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
               >
