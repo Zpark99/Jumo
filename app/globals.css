@@ -28,6 +28,7 @@
 }
 
 .dark {
+  color-scheme: dark; /* 스크롤바·폼 컨트롤 등 브라우저 네이티브 UI도 다크로 */
   --color-bg-page: #16181d;
   --color-bg-surface: #1e2127;
   --color-bg-card: #23262e;
