@@ -96,18 +96,21 @@ begin
   raise notice '[PASS] 케이스4 anon/authenticated execute 권한 없음';
 
   -- ---------------------------------------------------------------------
-  -- 케이스 5: cron 잡 등록 (분기 첫날 00:00 KST = 분기 말월 말일 15:00 UTC)
+  -- 케이스 5: cron 잡 등록 (매일 00:00 KST = 15:00 UTC), 스냅샷 잡은 1개뿐
   -- ---------------------------------------------------------------------
   if not exists (
     select 1 from cron.job
-    where jobname = 'capture-asset-snapshots-quarterly'
-      and schedule = '0 15 $ 3,6,9,12 *'
+    where jobname = 'capture-asset-snapshots-daily'
+      and schedule = '0 15 * * *'
       and command = 'select public.capture_asset_snapshots()'
       and active
-  ) then
-    raise exception '[FAIL] 케이스5 cron 잡 미등록/불일치';
+  ) or (
+    select count(*) from cron.job
+    where command = 'select public.capture_asset_snapshots()'
+  ) <> 1 then
+    raise exception '[FAIL] 케이스5 cron 잡 미등록/불일치/중복';
   end if;
-  raise notice '[PASS] 케이스5 cron 잡 등록 확인 (0 15 $ 3,6,9,12 *)';
+  raise notice '[PASS] 케이스5 cron 잡 등록 확인 (0 15 * * *, 중복 없음)';
 
   raise notice '모든 스냅샷 테스트 통과';
 end;
