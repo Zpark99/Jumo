@@ -100,8 +100,8 @@ export default function ReactionButtons({
         disabled={disabled || pending}
         className={`rounded-full px-2 py-1 font-medium transition-colors disabled:opacity-50 ${
           isLike
-            ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
-            : "text-zinc-400 hover:bg-zinc-100 dark:text-zinc-500 dark:hover:bg-zinc-800"
+            ? "bg-brand text-white"
+            : "text-fg-muted hover:bg-surface"
         }`}
       >
         좋아요 {state.likeCount}
@@ -112,8 +112,8 @@ export default function ReactionButtons({
         disabled={disabled || pending}
         className={`rounded-full px-2 py-1 font-medium transition-colors disabled:opacity-50 ${
           isDislike
-            ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
-            : "text-zinc-400 hover:bg-zinc-100 dark:text-zinc-500 dark:hover:bg-zinc-800"
+            ? "bg-brand text-white"
+            : "text-fg-muted hover:bg-surface"
         }`}
       >
         비추 {state.dislikeCount}

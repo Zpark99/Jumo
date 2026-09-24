@@ -52,8 +52,8 @@ export default function RepostModal({ original, onClose, onSubmit }: Props) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 px-6">
-      <div className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h3 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+      <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6">
+        <h3 className="text-lg font-semibold text-fg-primary">
           리포스트
         </h3>
 
@@ -62,21 +62,21 @@ export default function RepostModal({ original, onClose, onSubmit }: Props) {
           onChange={(e) => setComment(e.target.value)}
           placeholder="코멘트를 입력하세요"
           rows={3}
-          className="mt-4 w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-950 outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-black dark:text-zinc-50 dark:focus:border-zinc-600"
+          className="mt-4 w-full resize-none rounded-2xl border border-border bg-surface p-4 text-sm text-fg-primary outline-none focus:border-brand"
         />
         <div className="mt-2 flex items-center justify-between">
           <span
             className={`text-xs ${
               comment.trim().length > MAX_REPOST_LENGTH
                 ? "text-red-500"
-                : "text-zinc-400 dark:text-zinc-500"
+                : "text-fg-muted"
             }`}
           >
             {comment.trim().length}/{MAX_REPOST_LENGTH}
           </span>
         </div>
 
-        <div className="mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-black">
+        <div className="mt-3 rounded-2xl border border-border bg-surface p-3">
           <div className="flex items-center gap-2">
             {original.author_icon && (
               // eslint-disable-next-line @next/next/no-img-element
@@ -86,14 +86,14 @@ export default function RepostModal({ original, onClose, onSubmit }: Props) {
                 className="h-5 w-5 rounded-full object-cover"
               />
             )}
-            <span className="text-xs font-medium text-zinc-950 dark:text-zinc-50">
+            <span className="text-xs font-medium text-fg-primary">
               {original.author_nickname ?? "알 수 없음"}
             </span>
-            <span className="text-xs text-zinc-400 dark:text-zinc-500">
+            <span className="text-xs text-fg-muted">
               · {relativeTime(original.created_at)}
             </span>
           </div>
-          <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-zinc-700 dark:text-zinc-300">
+          <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-fg-secondary">
             {original.content}
           </p>
         </div>
@@ -105,7 +105,7 @@ export default function RepostModal({ original, onClose, onSubmit }: Props) {
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="flex-1 rounded-full border border-zinc-200 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            className="flex-1 rounded-full border border-border py-2 text-sm font-medium text-fg-secondary transition-colors hover:bg-surface disabled:opacity-50"
           >
             취소
           </button>
@@ -113,7 +113,7 @@ export default function RepostModal({ original, onClose, onSubmit }: Props) {
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex-1 rounded-full bg-zinc-950 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+            className="flex-1 rounded-full bg-brand py-2 text-sm font-medium text-white transition-colors hover:bg-brand-pressed disabled:opacity-50"
           >
             {submitting ? "등록 중..." : "리포스트"}
           </button>
