@@ -59,8 +59,8 @@ export default function FollowButton({
       disabled={disabled || pending}
       className={`flex h-9 items-center justify-center rounded-full px-5 text-sm font-medium transition-colors disabled:opacity-50 ${
         isFollowing
-          ? "border border-zinc-200 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          : "bg-zinc-950 text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+          ? "border border-border text-fg-secondary hover:bg-surface"
+          : "bg-brand text-white hover:bg-brand-pressed"
       }`}
     >
       {isFollowing ? "팔로잉" : "팔로우"}

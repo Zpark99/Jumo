@@ -291,20 +291,20 @@ export default function PostFeed({
   return (
     <div className="space-y-6">
       {/* 작성 폼 */}
-      <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="rounded-3xl border border-border bg-card p-6">
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder={composePlaceholder}
           rows={3}
-          className="w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-950 outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-black dark:text-zinc-50 dark:focus:border-zinc-600"
+          className="w-full resize-none rounded-2xl border border-border bg-surface p-4 text-sm text-fg-primary outline-none focus:border-brand"
         />
         <div className="mt-3 flex items-center justify-between">
           <span
             className={`text-xs ${
               body.trim().length > MAX_BODY_LENGTH
                 ? "text-red-500"
-                : "text-zinc-400 dark:text-zinc-500"
+                : "text-fg-muted"
             }`}
           >
             {body.trim().length}/{MAX_BODY_LENGTH}
@@ -313,7 +313,7 @@ export default function PostFeed({
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex h-9 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+            className="flex h-9 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed disabled:opacity-50"
           >
             {submitting ? "등록 중..." : "등록"}
           </button>
@@ -330,8 +330,8 @@ export default function PostFeed({
           onClick={() => setSortMode("latest")}
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             sortMode === "latest"
-              ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
-              : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              ? "bg-brand text-white"
+              : "bg-surface text-fg-secondary hover:bg-border"
           }`}
         >
           최신순
@@ -341,8 +341,8 @@ export default function PostFeed({
           onClick={() => setSortMode("popular")}
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             sortMode === "popular"
-              ? "bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950"
-              : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              ? "bg-brand text-white"
+              : "bg-surface text-fg-secondary hover:bg-border"
           }`}
         >
           인기순
@@ -356,23 +356,23 @@ export default function PostFeed({
       )}
 
       {loading ? (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="text-sm text-fg-secondary">
           불러오는 중...
         </p>
       ) : posts.length === 0 ? (
-        <p className="rounded-3xl border border-zinc-200 bg-white p-6 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+        <p className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-fg-secondary">
           {emptyMessage}
         </p>
       ) : (
         <>
-          <ul className="divide-y divide-zinc-100 rounded-3xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+          <ul className="divide-y divide-border rounded-3xl border border-border bg-card">
             {(sortMode === "latest"
               ? posts
               : posts.slice(0, visibleCount)
             ).map((post) => (
               <li
                 key={post.id}
-                className="px-6 py-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                className="px-6 py-4 transition-colors hover:bg-surface"
               >
                 <div className="flex items-center gap-2">
                   <Link
@@ -387,19 +387,19 @@ export default function PostFeed({
                         className="h-6 w-6 rounded-full object-cover"
                       />
                     )}
-                    <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                    <span className="text-sm font-medium text-fg-primary">
                       {post.author_nickname ?? "알 수 없음"}
                     </span>
                   </Link>
                   <Link
                     href={`/feed/${post.id}`}
-                    className="text-xs text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+                    className="text-xs text-fg-muted hover:text-fg-secondary"
                   >
                     · {relativeTime(post.created_at)}
                   </Link>
                 </div>
                 <Link href={`/feed/${post.id}`} className="block">
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-800 dark:text-zinc-200">
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-fg-primary">
                     {post.content}
                   </p>
                 </Link>
@@ -421,13 +421,13 @@ export default function PostFeed({
                   <button
                     type="button"
                     onClick={() => setRepostTarget(post)}
-                    className="text-xs font-medium text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+                    className="text-xs font-medium text-fg-muted hover:text-fg-secondary"
                   >
                     리포스트
                   </button>
                   <Link
                     href={`/feed/${post.id}`}
-                    className="text-xs text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+                    className="text-xs text-fg-muted hover:text-fg-secondary"
                   >
                     댓글 {post.comment_count}
                   </Link>
@@ -441,7 +441,7 @@ export default function PostFeed({
               type="button"
               onClick={loadMoreLatest}
               disabled={loadingMore}
-              className="w-full rounded-full border border-zinc-200 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="w-full rounded-full border border-border py-2 text-sm font-medium text-fg-secondary transition-colors hover:bg-surface disabled:opacity-50"
             >
               {loadingMore ? "불러오는 중..." : "더 보기"}
             </button>
@@ -451,7 +451,7 @@ export default function PostFeed({
             <button
               type="button"
               onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-              className="w-full rounded-full border border-zinc-200 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="w-full rounded-full border border-border py-2 text-sm font-medium text-fg-secondary transition-colors hover:bg-surface"
             >
               더 보기
             </button>
