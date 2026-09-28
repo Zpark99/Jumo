@@ -36,8 +36,8 @@
   --color-text-primary: #eaecef;
   --color-text-secondary: #a7b0bc;
   --color-text-muted: #6e7885;
-  --color-brand-primary: #8b7df2;
-  --color-brand-pressed: #7568e0;
+  --color-brand-primary: #7161e6; /* 흰 글자 4.61:1 (WCAG AA). 기존 #8b7df2는 3.33:1 미달 (#60) */
+  --color-brand-pressed: #5f4fd6; /* 흰 글자 5.87:1, base보다 어두워 hover 방향 유지 */
   --color-brand-tint: #272348;
   --color-price-up: #ff5c68;
   --color-price-down: #4c97ff;
