@@ -208,6 +208,15 @@ export default function Home() {
                 마이페이지
               </Link>
             )}
+            {!userLoading && user && (
+              <button
+                type="button"
+                onClick={() => supabase.auth.signOut()}
+                className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
+              >
+                로그아웃
+              </button>
+            )}
             {!userLoading && !user && (
               <Link
                 href="/login"
