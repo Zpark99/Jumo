@@ -174,28 +174,28 @@ export default function PublicProfilePage({
   };
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 px-6 py-10 dark:bg-black">
+    <div className="flex flex-1 flex-col bg-page px-6 py-10">
       <div className="mx-auto w-full max-w-2xl space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">
+          <h1 className="text-xl font-semibold text-fg-primary">
             프로필
           </h1>
           <Link
             href="/feed"
-            className="text-sm font-medium text-zinc-600 underline hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+            className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
           >
             피드로
           </Link>
         </div>
 
         {!userLoading && !user && (
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-900">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <section className="rounded-3xl border border-border bg-card p-6 text-center">
+            <p className="text-sm text-fg-secondary">
               프로필을 보려면 로그인이 필요합니다
             </p>
             <Link
               href="/login"
-              className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed"
             >
               로그인
             </Link>
@@ -207,17 +207,17 @@ export default function PublicProfilePage({
             {loadError && <p className="text-sm text-red-500">{loadError}</p>}
 
             {loading ? (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm text-fg-secondary">
                 불러오는 중...
               </p>
             ) : !profile ? (
-              <p className="rounded-3xl border border-zinc-200 bg-white p-6 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+              <p className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-fg-secondary">
                 사용자를 찾을 수 없습니다
               </p>
             ) : (
               <>
                 {/* 프로필 헤더 */}
-                <section className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                <section className="rounded-3xl border border-border bg-card p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
                       {profile.icon ? (
@@ -228,14 +228,14 @@ export default function PublicProfilePage({
                           className="h-16 w-16 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="h-16 w-16 rounded-full bg-zinc-100 dark:bg-zinc-800" />
+                        <div className="h-16 w-16 rounded-full bg-surface" />
                       )}
                       <div>
-                        <p className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+                        <p className="text-lg font-semibold text-fg-primary">
                           {profile.nickname}
                         </p>
                         {profile.bio && (
-                          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                          <p className="mt-1 text-sm text-fg-secondary">
                             {profile.bio}
                           </p>
                         )}
@@ -245,7 +245,7 @@ export default function PublicProfilePage({
                     {isOwnProfile ? (
                       <Link
                         href="/mypage"
-                        className="flex h-9 items-center justify-center rounded-full border border-zinc-200 px-5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                        className="flex h-9 items-center justify-center rounded-full border border-border px-5 text-sm font-medium text-fg-secondary transition-colors hover:bg-surface"
                       >
                         프로필 편집
                       </Link>
@@ -260,16 +260,16 @@ export default function PublicProfilePage({
                     )}
                   </div>
 
-                  <div className="mt-4 flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+                  <div className="mt-4 flex items-center gap-4 text-sm text-fg-secondary">
                     <span>
                       팔로워{" "}
-                      <span className="font-medium text-zinc-950 dark:text-zinc-50">
+                      <span className="font-medium text-fg-primary">
                         {followerCount}
                       </span>
                     </span>
                     <span>
                       팔로잉{" "}
-                      <span className="font-medium text-zinc-950 dark:text-zinc-50">
+                      <span className="font-medium text-fg-primary">
                         {followingCount}
                       </span>
                     </span>
@@ -282,29 +282,29 @@ export default function PublicProfilePage({
 
                 {/* 작성 글 목록 */}
                 <section className="space-y-3">
-                  <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                  <h2 className="text-sm font-medium text-fg-secondary">
                     작성한 글
                   </h2>
 
                   {posts.length === 0 ? (
-                    <p className="rounded-3xl border border-zinc-200 bg-white p-6 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+                    <p className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-fg-secondary">
                       작성한 글이 없습니다
                     </p>
                   ) : (
-                    <ul className="divide-y divide-zinc-100 rounded-3xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+                    <ul className="divide-y divide-border rounded-3xl border border-border bg-card">
                       {posts.map((post) => (
                         <li
                           key={post.id}
-                          className="px-6 py-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                          className="px-6 py-4 transition-colors hover:bg-surface"
                         >
                           <Link href={`/feed/${post.id}`} className="block">
-                            <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                            <span className="text-xs text-fg-muted">
                               {relativeTime(post.created_at)}
                             </span>
-                            <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-800 dark:text-zinc-200">
+                            <p className="mt-1 whitespace-pre-wrap text-sm text-fg-primary">
                               {post.content}
                             </p>
-                            <div className="mt-3 flex items-center gap-4 text-xs text-zinc-400 dark:text-zinc-500">
+                            <div className="mt-3 flex items-center gap-4 text-xs text-fg-muted">
                               <span>
                                 좋아요 {post.like_count} · 비추 {post.dislike_count}
                               </span>
