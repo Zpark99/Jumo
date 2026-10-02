@@ -485,11 +485,12 @@ export default function StockTradePage({
                         className="flex items-center justify-between py-3"
                       >
                         <div>
+                          {/* 거래 방향(등락 아님): 매수=빨강 / 매도=파랑, 한국 증권 관행 */}
                           <p
                             className={`text-sm font-medium ${
                               t.side === "buy"
-                                ? "text-red-500"
-                                : "text-blue-500"
+                                ? "text-price-up"
+                                : "text-price-down"
                             }`}
                           >
                             {t.side === "buy" ? "매수" : "매도"}
