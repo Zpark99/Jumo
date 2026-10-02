@@ -25,9 +25,13 @@
   --color-price-up: #f04452;
   --color-price-down: #3182f6;
   --color-price-flat: #6b7684;
+  /* 위험 액션(삭제 등) 전용 — 등락 price-up(빨강)과 의미가 다름 */
+  --color-danger: #e5484d;
+  --color-danger-pressed: #d13639;
 }
 
 .dark {
+  color-scheme: dark; /* 스크롤바·폼 컨트롤 등 브라우저 네이티브 UI도 다크로 */
   --color-bg-page: #16181d;
   --color-bg-surface: #1e2127;
   --color-bg-card: #23262e;
@@ -35,12 +39,14 @@
   --color-text-primary: #eaecef;
   --color-text-secondary: #a7b0bc;
   --color-text-muted: #6e7885;
-  --color-brand-primary: #8b7df2;
-  --color-brand-pressed: #7568e0;
+  --color-brand-primary: #7161e6; /* 흰 글자 4.61:1 (WCAG AA). 기존 #8b7df2는 3.33:1 미달 (#60) */
+  --color-brand-pressed: #5f4fd6; /* 흰 글자 5.87:1, base보다 어두워 hover 방향 유지 */
   --color-brand-tint: #272348;
   --color-price-up: #ff5c68;
   --color-price-down: #4c97ff;
   --color-price-flat: #8b95a1;
+  --color-danger: #ff6166;
+  --color-danger-pressed: #f0474c;
 }
 
 /* 사용: bg-page bg-surface bg-card border-border text-fg-primary bg-brand text-price-up ...

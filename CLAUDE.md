@@ -16,7 +16,7 @@ gh CLI로 이슈를 먼저 만든다.
 - 생성 후 이슈 번호를 사용자에게 알린다.
 
 ### 2단계 — 브랜치 생성
-- git checkout main && git pull origin main (최신화 먼저)
+- git checkout develop && git pull origin develop (최신화 먼저)
 - git checkout -b <type>/<간단한-설명>  (예: fix/quote-validation)
 - 브랜치명에 `#`나 공백 금지. type은 feat/fix/refactor/chore.
 
@@ -32,22 +32,23 @@ gh CLI로 이슈를 먼저 만든다.
    - 이슈를 완전히 끝내면 본문에 "Closes #N" 추가
 4. git push -u origin <브랜치명>
 
-### 5단계 — PR 생성
-- gh pr create로 PR 생성 (base: main). 본문에 요약 + "Closes #이슈번호".
-- 여기서 멈춘다. ⛔
+### 5, 6단계 — PR 생성 + 머지 여부 질문 (기능 → develop)
 
-### 6단계 — 머지 (⛔ 무조건 사용자 수동. Claude 자동 머지 절대 금지)
-- Claude는 어떤 경우에도 머지하지 않는다.
-- 사용자가 GitHub에서 PR "Files changed"를 직접 검토하고 머지한다.
-- 사용자가 "머지 완료"라고 알리기 전까지 다음 단계로 넘어가지 않는다.
+- `gh pr create --base develop` 로 PR 생성. 본문에 요약 + "Closes #이슈번호".
+- PR 생성 후, **사용자에게 머지 여부를 질문한다:**
+    
+    > "PR #N 생성했습니다. develop으로 머지할까요? (검토 후 직접 하시려면 '내가 할게')"
+    > 
+- **사용자가 "머지해" / "OK" 등 명시적으로 승인하면** → Claude가 머지 실행(`gh pr merge --squash`).
+- **사용자가 "내가 할게" / 무응답이면** → 멈춘다. 임의 머지 금지.
 
 ### 7단계 — 머지 후 로컬 정리 (사용자 "머지 완료" 확인 후)
-- git checkout main && git pull origin main
+- git checkout develop && git pull origin develop
 - git branch -d <작업브랜치>
 - 필요 시 마일스톤 상태 확인.
 
 ### 규칙 요약
-- 이슈 없이 작업 시작 금지. 브랜치 없이 main 직접 작업 금지.
+- 이슈 없이 작업 시작 금지. 브랜치 없이 main/develop 직접 작업 금지.
 - 머지는 항상 사용자 승인 후. Claude는 5단계(PR 생성)에서 멈춘다.
 - 커밋 메시지는 항상 `(#이슈번호)` 포함.
 
@@ -66,6 +67,12 @@ gh CLI로 이슈를 먼저 만든다.
 - posts/feed_posts 읽기는 authenticated 전용(RLS). 비로그인은 피드 목록 조회 불가.
 - 따라서 /feed는 비로그인 시 "로그인이 필요합니다" 안내로 대체.
 - 비로그인 열람을 허용하려면 RLS 완화 마이그레이션 필요.
+
+### 시즌 랭킹: 분기 시즌 + 기준점 리셋 (2026-09-24)
+- 시즌 = 분기(3개월). 순위는 "시즌 시작 시 총자산 대비 수익률" (월간·누적 아님)
+- 리셋은 수익률 기준점만. 계좌 잔고·보유 종목은 유지 (계좌 초기화 방식은 포트폴리오 소실로 기각)
+- 기준 자산 = 시즌 기간 내 가장 이른 `asset_snapshots` (기존 유저: 분기 첫날 00:00 KST cron / 중간 가입자: 가입 시점)
+- 첫 정식 시즌 2026-10-01 (4분기). 진행 추적: #67, #47
 
 ### 마이그레이션 diff 엔진 주의 (2026-07-02)
 - supabase/config.toml의 [experimental.pgdelta] enabled=true는

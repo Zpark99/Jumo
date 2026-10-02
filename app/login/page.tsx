@@ -48,16 +48,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-      <div className="w-full max-w-sm rounded-3xl border border-zinc-200 bg-white px-6 py-10 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="flex min-h-screen items-center justify-center bg-page">
+      <div className="w-full max-w-sm rounded-3xl border border-border bg-card px-6 py-10">
         <div className="flex flex-col items-center space-y-8">
           <Logo />
 
           <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-semibold text-zinc-950 dark:text-zinc-50">
+            <h1 className="text-2xl font-semibold text-fg-primary">
               Welcome back!
             </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="text-sm text-fg-secondary">
               주모에 로그인하고 모의투자를 시작하세요
             </p>
           </div>
@@ -67,7 +67,7 @@ export default function LoginPage() {
               type="button"
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 disabled:pointer-events-none disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-fg-primary transition-colors hover:bg-surface disabled:pointer-events-none disabled:opacity-50"
             >
               <GoogleIcon className="size-4" />
               {loading ? "이동 중..." : "Google로 로그인"}
@@ -78,13 +78,13 @@ export default function LoginPage() {
             )}
           </div>
 
-          <p className="text-center text-xs w-11/12 text-zinc-500 dark:text-zinc-400">
+          <p className="text-center text-xs w-11/12 text-fg-secondary">
             로그인 시 당사{" "}
-            <a href="#" className="underline hover:text-zinc-950 dark:hover:text-zinc-50">
+            <a href="#" className="underline hover:text-fg-primary">
               이용약관
             </a>{" "}
             및{" "}
-            <a href="#" className="underline hover:text-zinc-950 dark:hover:text-zinc-50">
+            <a href="#" className="underline hover:text-fg-primary">
               개인정보처리방침
             </a>
             에 동의하게 됩니다.

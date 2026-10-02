@@ -19,7 +19,7 @@ export default function QuotedPostCard({
 }) {
   if (original === undefined) {
     return (
-      <div className="mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-400 dark:border-zinc-800 dark:bg-black dark:text-zinc-500">
+      <div className="mt-3 rounded-2xl border border-border bg-surface p-3 text-xs text-fg-muted">
         원글 불러오는 중...
       </div>
     );
@@ -27,7 +27,7 @@ export default function QuotedPostCard({
 
   if (original === null) {
     return (
-      <div className="mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-400 dark:border-zinc-800 dark:bg-black dark:text-zinc-500">
+      <div className="mt-3 rounded-2xl border border-border bg-surface p-3 text-xs text-fg-muted">
         삭제된 글입니다
       </div>
     );
@@ -36,7 +36,7 @@ export default function QuotedPostCard({
   return (
     <Link
       href={`/feed/${original.id}`}
-      className="mt-3 block rounded-2xl border border-zinc-200 bg-zinc-50 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:bg-black dark:hover:bg-zinc-900"
+      className="mt-3 block rounded-2xl border border-border bg-surface p-3 transition-colors hover:bg-border"
     >
       <div className="flex items-center gap-2">
         {original.author_icon && (
@@ -47,18 +47,18 @@ export default function QuotedPostCard({
             className="h-5 w-5 rounded-full object-cover"
           />
         )}
-        <span className="text-xs font-medium text-zinc-950 dark:text-zinc-50">
+        <span className="text-xs font-medium text-fg-primary">
           {original.author_nickname ?? "알 수 없음"}
         </span>
-        <span className="text-xs text-zinc-400 dark:text-zinc-500">
+        <span className="text-xs text-fg-muted">
           · {relativeTime(original.created_at)}
         </span>
       </div>
-      <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-zinc-700 dark:text-zinc-300">
+      <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-fg-secondary">
         {original.content}
       </p>
       {original.repost_of && (
-        <span className="mt-1 inline-block text-xs font-medium text-zinc-500 underline dark:text-zinc-400">
+        <span className="mt-1 inline-block text-xs font-medium text-fg-secondary underline">
           원글 보기 →
         </span>
       )}

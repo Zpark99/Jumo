@@ -86,9 +86,9 @@ export default function StocksSearchPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 px-6 py-10 dark:bg-black">
+    <div className="flex flex-1 flex-col bg-page px-6 py-10">
       <div className="mx-auto w-full max-w-2xl space-y-6">
-        <h1 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">
+        <h1 className="text-xl font-semibold text-fg-primary">
           종목 검색
         </h1>
 
@@ -98,40 +98,40 @@ export default function StocksSearchPage() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="종목명 또는 티커로 검색 (예: 삼성전자, 005930)"
           autoFocus
-          className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none focus:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+          className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-fg-primary outline-none focus:border-brand"
         />
 
         {error && <p className="text-sm text-red-500">{error}</p>}
 
         {searching && (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">검색 중...</p>
+          <p className="text-sm text-fg-secondary">검색 중...</p>
         )}
 
         {!searching && query.trim() && results.length === 0 && !error && (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm text-fg-secondary">
             검색 결과가 없습니다
           </p>
         )}
 
         {results.length > 0 && (
-          <ul className="divide-y divide-zinc-100 rounded-3xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+          <ul className="divide-y divide-border rounded-3xl border border-border bg-card">
             {results.map((s) => {
               const name = s.name_ko ?? s.name_en ?? s.id;
               return (
                 <li key={s.id}>
                   <Link
                     href={`/stocks/${s.id}`}
-                    className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                    className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-surface"
                   >
                     <div>
-                      <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                      <p className="text-sm font-medium text-fg-primary">
                         {name}
                       </p>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      <p className="text-xs text-fg-secondary">
                         {s.ticker} · {s.market}
                       </p>
                     </div>
-                    <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                    <span className="text-xs text-fg-muted">
                       {s.currency}
                     </span>
                   </Link>
