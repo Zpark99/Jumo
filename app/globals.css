@@ -25,6 +25,9 @@
   --color-price-up: #f04452;
   --color-price-down: #3182f6;
   --color-price-flat: #6b7684;
+  /* 위험 액션(삭제 등) 전용 — 등락 price-up(빨강)과 의미가 다름 */
+  --color-danger: #e5484d;
+  --color-danger-pressed: #d13639;
 }
 
 .dark {
@@ -42,6 +45,8 @@
   --color-price-up: #ff5c68;
   --color-price-down: #4c97ff;
   --color-price-flat: #8b95a1;
+  --color-danger: #ff6166;
+  --color-danger-pressed: #f0474c;
 }
 
 /* 사용: bg-page bg-surface bg-card border-border text-fg-primary bg-brand text-price-up ...

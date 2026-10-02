@@ -546,7 +546,7 @@ export default function PostDetailPage({
                           setDeleteError(null);
                           setDeleteTarget(post.id);
                         }}
-                        className="ml-auto text-xs font-medium text-fg-muted hover:text-red-500"
+                        className="ml-auto text-xs font-medium text-fg-muted hover:text-danger"
                       >
                         삭제
                       </button>
@@ -583,7 +583,7 @@ export default function PostDetailPage({
                             <button
                               type="button"
                               onClick={() => setDeleteTarget(node.id)}
-                              className="font-medium hover:text-red-500"
+                              className="font-medium hover:text-danger"
                             >
                               삭제
                             </button>
@@ -640,7 +640,7 @@ export default function PostDetailPage({
                                     <button
                                       type="button"
                                       onClick={() => setDeleteTarget(reply.id)}
-                                      className="font-medium hover:text-red-500"
+                                      className="font-medium hover:text-danger"
                                     >
                                       삭제
                                     </button>
@@ -726,7 +726,7 @@ export default function PostDetailPage({
                     : handleDeleteComment(deleteTarget)
                 }
                 disabled={deleting}
-                className="flex-1 rounded-full bg-red-500 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                className="flex-1 rounded-full bg-danger py-2 text-sm font-medium text-white transition-colors hover:bg-danger-pressed disabled:opacity-50"
               >
                 {deleting ? "삭제 중..." : "삭제"}
               </button>
