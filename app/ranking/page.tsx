@@ -248,9 +248,11 @@ export default function RankingPage() {
                       </div>
                       <span
                         className={`text-sm font-semibold ${
-                          (r.return_rate ?? 0) >= 0
+                          (r.return_rate ?? 0) > 0
                             ? "text-price-up"
-                            : "text-price-down"
+                            : (r.return_rate ?? 0) < 0
+                              ? "text-price-down"
+                              : "text-price-flat"
                         }`}
                       >
                         {formatReturnRate(r.return_rate ?? 0)}

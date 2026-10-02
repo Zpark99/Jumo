@@ -202,9 +202,11 @@ export default function AccountPage() {
                           className={
                             pnl === null
                               ? "text-sm text-fg-muted"
-                              : pnl >= 0
-                                ? "text-sm font-medium text-green-700 dark:text-green-400"
-                                : "text-sm font-medium text-red-500"
+                              : pnl > 0
+                                ? "text-sm font-medium text-price-up"
+                                : pnl < 0
+                                  ? "text-sm font-medium text-price-down"
+                                  : "text-sm font-medium text-price-flat"
                           }
                         >
                           {pnl !== null ? formatPrice(pnl, h.currency) : "-"}
