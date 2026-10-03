@@ -9,6 +9,7 @@ import {
 
 import PostFeed from "@/components/PostFeed";
 import type { Candle } from "@/app/api/candles/[stockId]/route";
+import OrderBook, { buildMockOrderBook } from "./OrderBook";
 import {
   formatCandleDate,
   formatPrice,
@@ -19,9 +20,11 @@ import {
 } from "./types";
 
 // R3: 탭 키 literal 고정. page.tsx의 lazy load effect 조건(chart/history)과 일치해야 함 — 절대 변경 금지.
+// orderbook은 목업이라 lazy load effect 없음(탭 전환만).
 const TABS: { key: TabKey; label: string }[] = [
   { key: "quote", label: "시세" },
   { key: "chart", label: "차트" },
+  { key: "orderbook", label: "호가" },
   { key: "history", label: "거래내역" },
   { key: "community", label: "커뮤니티" },
   { key: "info", label: "정보" },
@@ -154,6 +157,18 @@ export default function StockTabs({
             </ResponsiveContainer>
           )}
         </div>
+      ) : activeTab === "orderbook" ? (
+        quote ? (
+          <OrderBook
+            {...buildMockOrderBook(quote.price, currency)}
+            currentPrice={quote.price}
+            currency={currency}
+          />
+        ) : (
+          <p className="mt-8 text-sm text-fg-secondary">
+            호가 정보를 불러오는 중...
+          </p>
+        )
       ) : activeTab === "history" ? (
         <div className="mt-8">
           {transactionsLoading && (
