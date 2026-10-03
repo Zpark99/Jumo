@@ -4,6 +4,7 @@ export type TabKey =
   | "quote"
   | "chart"
   | "orderbook"
+  | "news"
   | "history"
   | "community"
   | "info";

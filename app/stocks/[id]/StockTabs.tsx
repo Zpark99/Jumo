@@ -10,6 +10,7 @@ import {
 import PostFeed from "@/components/PostFeed";
 import type { Candle } from "@/app/api/candles/[stockId]/route";
 import OrderBook, { buildMockOrderBook } from "./OrderBook";
+import StockNews, { buildMockNews } from "./StockNews";
 import {
   formatCandleDate,
   formatPrice,
@@ -25,6 +26,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "quote", label: "시세" },
   { key: "chart", label: "차트" },
   { key: "orderbook", label: "호가" },
+  { key: "news", label: "뉴스" },
   { key: "history", label: "거래내역" },
   { key: "community", label: "커뮤니티" },
   { key: "info", label: "정보" },
@@ -169,6 +171,8 @@ export default function StockTabs({
             호가 정보를 불러오는 중...
           </p>
         )
+      ) : activeTab === "news" ? (
+        <StockNews items={buildMockNews(stockName)} />
       ) : activeTab === "history" ? (
         <div className="mt-8">
           {transactionsLoading && (
