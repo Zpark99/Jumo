@@ -1,6 +1,12 @@
 // 종목 상세 페이지 공유 타입·포매터 (page.tsx에서 분리, 로직 변경 없음)
 
-export type TabKey = "quote" | "chart" | "history" | "community" | "info";
+export type TabKey =
+  | "quote"
+  | "chart"
+  | "orderbook"
+  | "history"
+  | "community"
+  | "info";
 
 export type Stock = {
   id: string;
