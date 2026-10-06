@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { CandlestickSeries, createChart } from "lightweight-charts";
+import { CandlestickSeries, HistogramSeries, createChart } from "lightweight-charts";
 
 import type { Candle } from "@/app/api/candles/[stockId]/route";
 
@@ -43,7 +43,8 @@ export default function CandleChart({ candles, currency }: Props) {
         vertLines: { color: border },
         horzLines: { color: border },
       },
-      rightPriceScale: { borderColor: border },
+      // 캔들을 상단 75%로 올려 하단 거래량 막대와 겹치지 않게 함
+      rightPriceScale: { borderColor: border, scaleMargins: { top: 0.05, bottom: 0.25 } },
       timeScale: { borderColor: border },
       localization: { priceFormatter: (p: number) => nf.format(p) },
     });
@@ -64,6 +65,24 @@ export default function CandleChart({ candles, currency }: Props) {
         high: c.high,
         low: c.low,
         close: c.close,
+      }))
+    );
+
+    // 거래량 막대: 별도 "volume" price scale에 배치해 캔들(하단 25% 비움)과 분리
+    const volumeSeries = chart.addSeries(HistogramSeries, {
+      priceFormat: { type: "volume" },
+      priceScaleId: "volume",
+    });
+    chart.priceScale("volume").applyOptions({
+      scaleMargins: { top: 0.8, bottom: 0 }, // 하단 20%에만 거래량 표시
+    });
+
+    volumeSeries.setData(
+      candles.map((c) => ({
+        time: toChartTime(c.date),
+        value: c.volume,
+        // 봉 방향 따라 양봉 price-up / 음봉 price-down, 반투명(hex alpha 50%)
+        color: `${c.close >= c.open ? priceUp : priceDown}80`,
       }))
     );
 
