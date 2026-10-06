@@ -5,24 +5,7 @@ import Link from "next/link";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
-
-type Stock = {
-  id: string;
-  ticker: string;
-  name_ko: string | null;
-  name_en: string | null;
-  market: string;
-  currency: string;
-};
-
-type QuoteMap = Record<string, number | undefined>;
-
-function formatPrice(price: number, currency: string) {
-  return new Intl.NumberFormat(currency === "USD" ? "en-US" : "ko-KR", {
-    style: "currency",
-    currency,
-  }).format(price);
-}
+import StockList, { type Stock, type QuoteMap } from "@/components/home/StockList";
 
 function getMarketStatus(): { open: boolean; label: string } {
   const kst = new Date(
@@ -34,6 +17,16 @@ function getMarketStatus(): { open: boolean; label: string } {
   const isOpenHours = minutes >= 9 * 60 && minutes <= 15 * 60 + 30;
   const open = isWeekday && isOpenHours;
   return { open, label: open ? "장중" : "장마감" };
+}
+
+// PR-B·C에서 채울 영역 자리(빈 카드). 레이아웃 뼈대만 잡아둔다.
+function PlaceholderCard({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <section className="rounded-3xl border border-dashed border-border bg-card/50 p-6">
+      <h2 className="text-sm font-medium text-fg-secondary">{title}</h2>
+      <p className="mt-2 text-xs text-fg-muted">{hint ?? "준비 중"}</p>
+    </section>
+  );
 }
 
 export default function Home() {
@@ -154,9 +147,9 @@ export default function Home() {
   const watchlistStocks = stocks.filter((s) => watchlist[s.id]);
 
   return (
-    <div className="flex flex-1 flex-col bg-page px-6 py-10">
-      <div className="mx-auto w-full max-w-2xl space-y-8">
-        {/* 헤더 */}
+    <div className="flex flex-1 flex-col bg-page px-4 py-6 sm:px-6 lg:py-10">
+      <div className="mx-auto w-full max-w-7xl space-y-8">
+        {/* 헤더 (전역화 X — page.tsx 안에 유지) */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold text-fg-primary">
@@ -228,116 +221,73 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 관심종목 */}
-        {user && watchlistStocks.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="text-sm font-medium text-fg-secondary">
-              관심종목
-            </h2>
-            <StockList
-              stocks={watchlistStocks}
-              quotes={quotes}
-              watchlist={watchlist}
-              onToggle={toggleWatchlist}
-              canToggle={!!accountId}
-            />
-          </section>
-        )}
+        {/* 3컬럼 셸: 모바일 단일 스택, lg부터 좌/중앙/우.
+            모바일 순서는 중앙(종목) 먼저 → 관심종목 → 우 패널 */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)_300px]">
+          {/* 좌 사이드바 */}
+          <aside className="order-2 space-y-6 lg:order-1">
+            {/* 내 투자 자리 (PR-B에서 실데이터) */}
+            <PlaceholderCard title="내 투자" />
 
-        {/* 전체 종목 */}
-        <section className="space-y-3">
-          <h2 className="text-sm font-medium text-fg-secondary">
-            전체 종목
-          </h2>
+            {/* 관심종목 (기존 기능 — 이동만) */}
+            {user && watchlistStocks.length > 0 && (
+              <section className="space-y-3">
+                <h2 className="text-sm font-medium text-fg-secondary">
+                  관심종목
+                </h2>
+                <StockList
+                  stocks={watchlistStocks}
+                  quotes={quotes}
+                  watchlist={watchlist}
+                  onToggle={toggleWatchlist}
+                  canToggle={!!accountId}
+                />
+              </section>
+            )}
+          </aside>
 
-          {loadingStocks && (
-            <p className="text-sm text-fg-secondary">
-              불러오는 중...
-            </p>
-          )}
+          {/* 중앙 메인 */}
+          <main className="order-1 space-y-6 lg:order-2">
+            {/* 지수 카드 자리 (PR-C에서 채움) */}
+            <PlaceholderCard title="지수" />
 
-          {!loadingStocks && stocks.length === 0 && (
-            <p className="text-sm text-fg-secondary">
-              등록된 종목이 없습니다
-            </p>
-          )}
+            {/* 전체 종목 (기존 기능 — 이동만) */}
+            <section className="space-y-3">
+              <h2 className="text-sm font-medium text-fg-secondary">
+                전체 종목
+              </h2>
 
-          {stocks.length > 0 && (
-            <StockList
-              stocks={stocks}
-              quotes={quotes}
-              watchlist={watchlist}
-              onToggle={toggleWatchlist}
-              canToggle={!!accountId}
-            />
-          )}
-        </section>
+              {loadingStocks && (
+                <p className="text-sm text-fg-secondary">
+                  불러오는 중...
+                </p>
+              )}
+
+              {!loadingStocks && stocks.length === 0 && (
+                <p className="text-sm text-fg-secondary">
+                  등록된 종목이 없습니다
+                </p>
+              )}
+
+              {stocks.length > 0 && (
+                <StockList
+                  stocks={stocks}
+                  quotes={quotes}
+                  watchlist={watchlist}
+                  onToggle={toggleWatchlist}
+                  canToggle={!!accountId}
+                />
+              )}
+            </section>
+          </main>
+
+          {/* 우 패널 */}
+          <aside className="order-3 space-y-6">
+            {/* 주요 일정 / 뉴스 자리 (PR-C에서 채움) */}
+            <PlaceholderCard title="주요 일정 / 뉴스" />
+          </aside>
+        </div>
       </div>
     </div>
-  );
-}
-
-function StockList({
-  stocks,
-  quotes,
-  watchlist,
-  onToggle,
-  canToggle,
-}: {
-  stocks: Stock[];
-  quotes: QuoteMap;
-  watchlist: Record<string, string>;
-  onToggle: (stockId: string) => void;
-  canToggle: boolean;
-}) {
-  return (
-    <ul className="divide-y divide-border rounded-3xl border border-border bg-card">
-      {stocks.map((s) => {
-        const name = s.name_ko ?? s.name_en ?? s.id;
-        const price = quotes[s.id];
-        const isWatched = !!watchlist[s.id];
-
-        return (
-          <li key={s.id}>
-            <Link
-              href={`/stocks/${s.id}`}
-              className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-surface"
-            >
-              <div className="flex items-center gap-3">
-                {canToggle && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onToggle(s.id);
-                    }}
-                    aria-label={isWatched ? "관심종목 제거" : "관심종목 추가"}
-                    className={`text-lg leading-none ${
-                      isWatched
-                        ? "text-yellow-500"
-                        : "text-fg-muted"
-                    }`}
-                  >
-                    {isWatched ? "★" : "☆"}
-                  </button>
-                )}
-                <div>
-                  <p className="text-sm font-medium text-fg-primary">
-                    {name}
-                  </p>
-                  <p className="text-xs text-fg-secondary">
-                    {s.ticker} · {s.market}
-                  </p>
-                </div>
-              </div>
-              <span className="text-sm font-medium text-fg-primary">
-                {price !== undefined ? formatPrice(price, s.currency) : "-"}
-              </span>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
   );
 }
