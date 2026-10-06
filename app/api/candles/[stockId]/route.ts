@@ -10,6 +10,7 @@ type KisCandleResponse = {
     stck_hgpr?: string;
     stck_lwpr?: string;
     stck_clpr?: string;
+    acml_vol?: string;
   }>;
 };
 
@@ -19,6 +20,7 @@ export type Candle = {
   high: number;
   low: number;
   close: number;
+  volume: number;
 };
 
 const CANDLE_DAYS = 100;
@@ -83,6 +85,7 @@ export async function GET(
         high: Number(r.stck_hgpr),
         low: Number(r.stck_lwpr),
         close: Number(r.stck_clpr),
+        volume: Number(r.acml_vol),
       }))
       .filter((c) => Number.isFinite(c.close))
       .sort((a, b) => a.date.localeCompare(b.date))
