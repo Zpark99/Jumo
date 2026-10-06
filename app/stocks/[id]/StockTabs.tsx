@@ -1,18 +1,9 @@
-import {
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-
 import PostFeed from "@/components/PostFeed";
 import type { Candle } from "@/app/api/candles/[stockId]/route";
+import CandleChart from "./CandleChart";
 import OrderBook, { buildMockOrderBook } from "./OrderBook";
 import StockNews, { buildMockNews } from "./StockNews";
 import {
-  formatCandleDate,
   formatPrice,
   type Quote,
   type Stock,
@@ -126,37 +117,7 @@ export default function StockTabs({
           {candlesError && <p className="text-sm text-red-500">{candlesError}</p>}
 
           {!candlesLoading && !candlesError && candles && candles.length > 0 && (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={candles}>
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={formatCandleDate}
-                  tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}
-                  tickLine={false}
-                  axisLine={{ stroke: "var(--color-text-muted)" }}
-                  minTickGap={24}
-                />
-                <YAxis
-                  domain={["dataMin", "dataMax"]}
-                  tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}
-                  tickLine={false}
-                  axisLine={false}
-                  width={60}
-                  tickFormatter={(v) => Number(v).toLocaleString()}
-                />
-                <Tooltip
-                  formatter={(value) => formatPrice(Number(value), currency)}
-                  labelFormatter={(label) => formatCandleDate(String(label))}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="close"
-                  stroke="var(--color-text-secondary)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <CandleChart candles={candles} currency={currency} />
           )}
         </div>
       ) : activeTab === "orderbook" ? (
