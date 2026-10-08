@@ -288,104 +288,94 @@ export default function PostFeed({
     return { error: null };
   };
 
+  const overLimit = body.trim().length > MAX_BODY_LENGTH;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* 작성 폼 */}
-      <section className="rounded-3xl border border-border bg-card p-6">
-        <textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder={composePlaceholder}
-          rows={3}
-          className="w-full resize-none rounded-2xl border border-border bg-surface p-4 text-sm text-fg-primary outline-none focus:border-brand"
-        />
-        <div className="mt-3 flex items-center justify-between">
-          <span
-            className={`text-xs ${
-              body.trim().length > MAX_BODY_LENGTH
-                ? "text-red-500"
-                : "text-fg-muted"
-            }`}
-          >
-            {body.trim().length}/{MAX_BODY_LENGTH}
-          </span>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="flex h-9 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed disabled:opacity-50"
-          >
-            {submitting ? "등록 중..." : "등록"}
-          </button>
+      <section className="rounded-2xl border border-border bg-card p-4">
+        <div className="flex gap-3">
+          {/* 작성자 아바타 자리 (현재 유저 아이콘은 PostFeed에 없어 중립 placeholder) */}
+          <div className="h-9 w-9 shrink-0 rounded-full bg-surface" />
+          <div className="min-w-0 flex-1">
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder={composePlaceholder}
+              rows={2}
+              className="w-full resize-none rounded-xl border border-border bg-surface p-3 text-sm text-fg-primary outline-none transition-colors focus:border-brand"
+            />
+            <div className="mt-2 flex items-center justify-between">
+              <span className={`text-xs ${overLimit ? "text-red-500" : "text-fg-muted"}`}>
+                {body.trim().length}/{MAX_BODY_LENGTH}
+              </span>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="flex h-9 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed disabled:opacity-50"
+              >
+                {submitting ? "등록 중..." : "등록"}
+              </button>
+            </div>
+            {submitError && <p className="mt-2 text-sm text-red-500">{submitError}</p>}
+          </div>
         </div>
-        {submitError && (
-          <p className="mt-2 text-sm text-red-500">{submitError}</p>
-        )}
       </section>
 
-      {/* 정렬 토글 */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setSortMode("latest")}
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            sortMode === "latest"
-              ? "bg-brand text-white"
-              : "bg-surface text-fg-secondary hover:bg-border"
-          }`}
-        >
-          최신순
-        </button>
-        <button
-          type="button"
-          onClick={() => setSortMode("popular")}
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            sortMode === "popular"
-              ? "bg-brand text-white"
-              : "bg-surface text-fg-secondary hover:bg-border"
-          }`}
-        >
-          인기순
-        </button>
+      {/* 정렬 토글 (세그먼트) */}
+      <div className="inline-flex rounded-full bg-surface p-1">
+        {(["latest", "popular"] as const).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setSortMode(mode)}
+            className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
+              sortMode === mode
+                ? "bg-brand text-white"
+                : "text-fg-secondary hover:text-fg-primary"
+            }`}
+          >
+            {mode === "latest" ? "최신순" : "인기순"}
+          </button>
+        ))}
       </div>
 
       {/* 목록 */}
       {loadError && <p className="text-sm text-red-500">{loadError}</p>}
-      {reactionError && (
-        <p className="text-sm text-red-500">{reactionError}</p>
-      )}
+      {reactionError && <p className="text-sm text-red-500">{reactionError}</p>}
 
       {loading ? (
-        <p className="text-sm text-fg-secondary">
-          불러오는 중...
-        </p>
+        <p className="text-sm text-fg-secondary">불러오는 중...</p>
       ) : posts.length === 0 ? (
-        <p className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-fg-secondary">
+        <p className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-fg-secondary">
           {emptyMessage}
         </p>
       ) : (
         <>
-          <ul className="divide-y divide-border rounded-3xl border border-border bg-card">
+          <ul className="space-y-3">
             {(sortMode === "latest"
               ? posts
               : posts.slice(0, visibleCount)
             ).map((post) => (
               <li
                 key={post.id}
-                className="px-6 py-4 transition-colors hover:bg-surface"
+                className="rounded-2xl border border-border bg-card p-4 transition-colors hover:border-fg-muted"
               >
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/profile/${post.author_id}`}
                     className="flex items-center gap-2 hover:underline"
                   >
-                    {post.author_icon && (
+                    {post.author_icon ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={post.author_icon}
                         alt=""
-                        className="h-6 w-6 rounded-full object-cover"
+                        className="h-9 w-9 rounded-full object-cover"
                       />
+                    ) : (
+                      <div className="h-9 w-9 rounded-full bg-surface" />
                     )}
                     <span className="text-sm font-medium text-fg-primary">
                       {post.author_nickname ?? "알 수 없음"}
@@ -399,14 +389,12 @@ export default function PostFeed({
                   </Link>
                 </div>
                 <Link href={`/feed/${post.id}`} className="block">
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-fg-primary">
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-fg-primary">
                     {post.content}
                   </p>
                 </Link>
-                {post.repost_of && (
-                  <QuotedPostCard original={post.original} />
-                )}
-                <div className="mt-3 flex items-center gap-4">
+                {post.repost_of && <QuotedPostCard original={post.original} />}
+                <div className="mt-3 flex items-center gap-5">
                   <ReactionButtons
                     postId={post.id}
                     userId={userId}
