@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
-import type { Candle } from "@/app/api/candles/[stockId]/route";
+import type { Candle, CandlePeriod } from "@/app/api/candles/[stockId]/route";
 import StockHeader from "./StockHeader";
 import StockTabs from "./StockTabs";
 import OrderPanel from "./OrderPanel";
@@ -66,6 +66,7 @@ export default function StockTradePage({
   const [candles, setCandles] = useState<Candle[] | null>(null);
   const [candlesLoading, setCandlesLoading] = useState(false);
   const [candlesError, setCandlesError] = useState<string | null>(null);
+  const [candlePeriod, setCandlePeriod] = useState<CandlePeriod>("D");
 
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [transactionsLoading, setTransactionsLoading] = useState(false);
@@ -152,18 +153,18 @@ export default function StockTradePage({
       setCandlesError(null);
 
       try {
-        const res = await fetch(`/api/candles/${stockId}`);
+        const res = await fetch(`/api/candles/${stockId}?period=${candlePeriod}`);
         if (!active) return;
 
         if (!res.ok) {
-          setCandlesError("일봉 데이터를 불러오지 못했습니다");
+          setCandlesError("차트 데이터를 불러오지 못했습니다");
           return;
         }
 
         const data: { candles: Candle[] } = await res.json();
         setCandles(data.candles);
       } catch {
-        if (active) setCandlesError("일봉 데이터를 불러오지 못했습니다");
+        if (active) setCandlesError("차트 데이터를 불러오지 못했습니다");
       } finally {
         if (active) setCandlesLoading(false);
       }
@@ -173,7 +174,15 @@ export default function StockTradePage({
     return () => {
       active = false;
     };
-  }, [activeTab, candles, stockId]);
+    // candlePeriod 변경 시에는 아래 핸들러가 candles를 null로 되돌려 재조회된다
+  }, [activeTab, candles, stockId, candlePeriod]);
+
+  // 기간 전환: candles를 비워 위 effect의 "null이면 조회" 경로를 그대로 태운다
+  const changeCandlePeriod = (next: CandlePeriod) => {
+    if (next === candlePeriod) return;
+    setCandlePeriod(next);
+    setCandles(null);
+  };
 
   useEffect(() => {
     if (activeTab !== "history" || transactions !== null) return;
@@ -292,6 +301,8 @@ export default function StockTradePage({
             candles={candles}
             candlesLoading={candlesLoading}
             candlesError={candlesError}
+            candlePeriod={candlePeriod}
+            onCandlePeriodChange={changeCandlePeriod}
             transactions={transactions}
             transactionsLoading={transactionsLoading}
             transactionsError={transactionsError}

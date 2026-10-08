@@ -1,5 +1,5 @@
 import PostFeed from "@/components/PostFeed";
-import type { Candle } from "@/app/api/candles/[stockId]/route";
+import type { Candle, CandlePeriod } from "@/app/api/candles/[stockId]/route";
 import CandleChart from "./CandleChart";
 import OrderBook, { buildMockOrderBook } from "./OrderBook";
 import StockNews, { buildMockNews } from "./StockNews";
@@ -23,6 +23,12 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "info", label: "정보" },
 ];
 
+const PERIODS: { key: CandlePeriod; label: string }[] = [
+  { key: "D", label: "일" },
+  { key: "W", label: "주" },
+  { key: "M", label: "월" },
+];
+
 type Props = {
   activeTab: TabKey;
   onTabChange: (tab: TabKey) => void;
@@ -35,6 +41,8 @@ type Props = {
   candles: Candle[] | null;
   candlesLoading: boolean;
   candlesError: string | null;
+  candlePeriod: CandlePeriod;
+  onCandlePeriodChange: (period: CandlePeriod) => void;
   transactions: Transaction[] | null;
   transactionsLoading: boolean;
   transactionsError: string | null;
@@ -52,6 +60,8 @@ export default function StockTabs({
   candles,
   candlesLoading,
   candlesError,
+  candlePeriod,
+  onCandlePeriodChange,
   transactions,
   transactionsLoading,
   transactionsError,
@@ -109,16 +119,36 @@ export default function StockTabs({
           </div>
         </dl>
       ) : activeTab === "chart" ? (
-        <div className="mt-8 h-64">
-          {candlesLoading && (
-            <p className="text-sm text-fg-secondary">불러오는 중...</p>
-          )}
+        <div className="mt-8">
+          {/* 기간 전환 (일/주/월). 분봉은 1회 30건 제한 때문에 별도 작업 */}
+          <div className="mb-3 inline-flex rounded-full bg-surface p-1">
+            {PERIODS.map((p) => (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => onCandlePeriodChange(p.key)}
+                className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
+                  candlePeriod === p.key
+                    ? "bg-brand text-white"
+                    : "text-fg-secondary hover:text-fg-primary"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
 
-          {candlesError && <p className="text-sm text-red-500">{candlesError}</p>}
+          <div className="h-64">
+            {candlesLoading && (
+              <p className="text-sm text-fg-secondary">불러오는 중...</p>
+            )}
 
-          {!candlesLoading && !candlesError && candles && candles.length > 0 && (
-            <CandleChart candles={candles} currency={currency} />
-          )}
+            {candlesError && <p className="text-sm text-red-500">{candlesError}</p>}
+
+            {!candlesLoading && !candlesError && candles && candles.length > 0 && (
+              <CandleChart candles={candles} currency={currency} />
+            )}
+          </div>
         </div>
       ) : activeTab === "orderbook" ? (
         quote ? (
