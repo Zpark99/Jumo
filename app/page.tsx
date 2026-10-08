@@ -6,6 +6,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
 import StockList, { type Stock, type QuoteMap } from "@/components/home/StockList";
+import MyInvestmentCard from "@/components/home/MyInvestmentCard";
+import RankingPreview from "@/components/home/RankingPreview";
 
 function getMarketStatus(): { open: boolean; label: string } {
   const kst = new Date(
@@ -226,8 +228,8 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)_300px]">
           {/* 좌 사이드바 */}
           <aside className="order-2 space-y-6 lg:order-1">
-            {/* 내 투자 자리 (PR-B에서 실데이터) */}
-            <PlaceholderCard title="내 투자" />
+            {/* 내 투자 요약 (실데이터) */}
+            <MyInvestmentCard userId={user?.id ?? null} authLoading={userLoading} />
 
             {/* 관심종목 (기존 기능 — 이동만) */}
             {user && watchlistStocks.length > 0 && (
@@ -250,6 +252,9 @@ export default function Home() {
           <main className="order-1 space-y-6 lg:order-2">
             {/* 지수 카드 자리 (PR-C에서 채움) */}
             <PlaceholderCard title="지수" />
+
+            {/* 실시간 랭킹 프리뷰 (실데이터) */}
+            <RankingPreview userId={user?.id ?? null} authLoading={userLoading} />
 
             {/* 전체 종목 (기존 기능 — 이동만) */}
             <section className="space-y-3">
