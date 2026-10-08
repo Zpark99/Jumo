@@ -8,6 +8,8 @@ import { useSupabaseUser } from "@/lib/useSupabaseUser";
 import StockList, { type Stock, type QuoteMap } from "@/components/home/StockList";
 import MyInvestmentCard from "@/components/home/MyInvestmentCard";
 import RankingPreview from "@/components/home/RankingPreview";
+import IndexCardGrid, { buildMockIndices } from "@/components/home/IndexCardGrid";
+import SchedulePanel, { buildMockSchedule } from "@/components/home/SchedulePanel";
 
 function getMarketStatus(): { open: boolean; label: string } {
   const kst = new Date(
@@ -19,16 +21,6 @@ function getMarketStatus(): { open: boolean; label: string } {
   const isOpenHours = minutes >= 9 * 60 && minutes <= 15 * 60 + 30;
   const open = isWeekday && isOpenHours;
   return { open, label: open ? "장중" : "장마감" };
-}
-
-// PR-B·C에서 채울 영역 자리(빈 카드). 레이아웃 뼈대만 잡아둔다.
-function PlaceholderCard({ title, hint }: { title: string; hint?: string }) {
-  return (
-    <section className="rounded-3xl border border-dashed border-border bg-card/50 p-6">
-      <h2 className="text-sm font-medium text-fg-secondary">{title}</h2>
-      <p className="mt-2 text-xs text-fg-muted">{hint ?? "준비 중"}</p>
-    </section>
-  );
 }
 
 export default function Home() {
@@ -250,8 +242,8 @@ export default function Home() {
 
           {/* 중앙 메인 */}
           <main className="order-1 space-y-6 lg:order-2">
-            {/* 지수 카드 자리 (PR-C에서 채움) */}
-            <PlaceholderCard title="지수" />
+            {/* 지수 카드 그리드 (목업) */}
+            <IndexCardGrid indices={buildMockIndices()} />
 
             {/* 실시간 랭킹 프리뷰 (실데이터) */}
             <RankingPreview userId={user?.id ?? null} authLoading={userLoading} />
@@ -288,8 +280,8 @@ export default function Home() {
 
           {/* 우 패널 */}
           <aside className="order-3 space-y-6">
-            {/* 주요 일정 / 뉴스 자리 (PR-C에서 채움) */}
-            <PlaceholderCard title="주요 일정 / 뉴스" />
+            {/* 주요 일정 / 뉴스 (목업) */}
+            <SchedulePanel items={buildMockSchedule()} />
           </aside>
         </div>
       </div>
