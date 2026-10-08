@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
+import { SUPPORTED_MARKETS } from "@/lib/constants";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
 import StockList, { type Stock, type QuoteMap } from "@/components/home/StockList";
 import MyInvestmentCard from "@/components/home/MyInvestmentCard";
@@ -42,6 +43,7 @@ export default function Home() {
       const { data } = await supabase
         .from("stocks")
         .select("id, ticker, name_ko, name_en, market, currency")
+        .in("market", SUPPORTED_MARKETS) // 해외는 시세 조회 불가라 숨김 (#120)
         .order("ticker");
 
       if (!active) return;
