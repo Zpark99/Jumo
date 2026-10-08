@@ -80,7 +80,10 @@ export async function GET(
     const prevClose = Number(output?.stck_sdpr);
     const changeRate = Number(output?.prdy_ctrt);
 
-    if (!Number.isFinite(price)) {
+    // 0 이하는 유효한 시세가 아니다. 해외 종목 코드를 국내 엔드포인트에 넘기면
+    // rt_cd=0에 현재가 0이 돌아오는데(#120), 이를 저장하면 execute_order가
+    // 0원에 체결해버린다. 저장도 반환도 하지 않는다.
+    if (!Number.isFinite(price) || price <= 0) {
       return Response.json({ error: "QUOTE_NOT_FOUND" }, { status: 404 });
     }
 
