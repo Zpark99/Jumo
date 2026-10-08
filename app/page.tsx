@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
@@ -143,75 +142,24 @@ export default function Home() {
   return (
     <div className="flex flex-1 flex-col bg-page px-4 py-6 sm:px-6 lg:py-10">
       <div className="mx-auto w-full max-w-7xl space-y-8">
-        {/* 헤더 (전역화 X — page.tsx 안에 유지) */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-fg-primary">
-              주모, 모의투자 플랫폼
-            </h1>
-            <div className="mt-2 flex items-center gap-2">
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-medium ${
-                  marketStatus.open
-                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                    : "bg-surface text-fg-secondary"
-                }`}
-              >
-                {marketStatus.label}
-              </span>
-              <span className="rounded-full bg-surface px-3 py-1 text-xs font-medium text-fg-secondary">
-                지연 시세
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/feed"
-              className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
+        {/* 페이지 제목 + 장 상태 뱃지 (내비는 전역 TopNav로 이동) */}
+        <div>
+          <h1 className="text-xl font-semibold text-fg-primary">
+            주모, 모의투자 플랫폼
+          </h1>
+          <div className="mt-2 flex items-center gap-2">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-medium ${
+                marketStatus.open
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-surface text-fg-secondary"
+              }`}
             >
-              피드
-            </Link>
-            <Link
-              href="/ranking"
-              className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
-            >
-              랭킹
-            </Link>
-
-            {!userLoading && user && (
-              <Link
-                href="/account"
-                className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
-              >
-                내 계좌
-              </Link>
-            )}
-            {!userLoading && user && (
-              <Link
-                href="/mypage"
-                className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
-              >
-                마이페이지
-              </Link>
-            )}
-            {!userLoading && user && (
-              <button
-                type="button"
-                onClick={() => supabase.auth.signOut()}
-                className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
-              >
-                로그아웃
-              </button>
-            )}
-            {!userLoading && !user && (
-              <Link
-                href="/login"
-                className="flex h-10 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed"
-              >
-                로그인
-              </Link>
-            )}
+              {marketStatus.label}
+            </span>
+            <span className="rounded-full bg-surface px-3 py-1 text-xs font-medium text-fg-secondary">
+              지연 시세
+            </span>
           </div>
         </div>
 
