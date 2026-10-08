@@ -134,17 +134,9 @@ export default function MyPage() {
   return (
     <div className="flex flex-1 flex-col bg-page px-6 py-10">
       <div className="mx-auto w-full max-w-2xl space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-fg-primary">
-            마이페이지
-          </h1>
-          <Link
-            href="/"
-            className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
-          >
-            홈으로
-          </Link>
-        </div>
+        <h1 className="text-xl font-semibold text-fg-primary">
+          마이페이지
+        </h1>
 
         {!userLoading && !user && (
           <section className="rounded-3xl border border-border bg-card p-6 text-center">

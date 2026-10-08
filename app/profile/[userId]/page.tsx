@@ -176,17 +176,9 @@ export default function PublicProfilePage({
   return (
     <div className="flex flex-1 flex-col bg-page px-6 py-10">
       <div className="mx-auto w-full max-w-2xl space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-fg-primary">
-            프로필
-          </h1>
-          <Link
-            href="/feed"
-            className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
-          >
-            피드로
-          </Link>
-        </div>
+        <h1 className="text-xl font-semibold text-fg-primary">
+          프로필
+        </h1>
 
         {!userLoading && !user && (
           <section className="rounded-3xl border border-border bg-card p-6 text-center">
