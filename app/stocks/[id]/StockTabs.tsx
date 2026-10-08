@@ -1,7 +1,8 @@
 import PostFeed from "@/components/PostFeed";
 import type { Candle, CandlePeriod } from "@/app/api/candles/[stockId]/route";
 import CandleChart from "./CandleChart";
-import OrderBook, { buildMockOrderBook } from "./OrderBook";
+import type { OrderBookData } from "@/app/api/orderbook/[stockId]/route";
+import OrderBook from "./OrderBook";
 import StockNews, { buildMockNews } from "./StockNews";
 import {
   formatPrice,
@@ -43,6 +44,8 @@ type Props = {
   candlesError: string | null;
   candlePeriod: CandlePeriod;
   onCandlePeriodChange: (period: CandlePeriod) => void;
+  orderbook: OrderBookData | null;
+  orderbookError: string | null;
   transactions: Transaction[] | null;
   transactionsLoading: boolean;
   transactionsError: string | null;
@@ -62,6 +65,8 @@ export default function StockTabs({
   candlesError,
   candlePeriod,
   onCandlePeriodChange,
+  orderbook,
+  orderbookError,
   transactions,
   transactionsLoading,
   transactionsError,
@@ -151,10 +156,13 @@ export default function StockTabs({
           </div>
         </div>
       ) : activeTab === "orderbook" ? (
-        quote ? (
+        orderbookError ? (
+          <p className="mt-8 text-sm text-red-500">{orderbookError}</p>
+        ) : orderbook ? (
           <OrderBook
-            {...buildMockOrderBook(quote.price, currency)}
-            currentPrice={quote.price}
+            asks={orderbook.asks}
+            bids={orderbook.bids}
+            currentPrice={quote?.price ?? null}
             currency={currency}
           />
         ) : (
