@@ -1,28 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
-
-type Stock = {
-  id: string;
-  ticker: string;
-  name_ko: string | null;
-  name_en: string | null;
-  market: string;
-  currency: string;
-};
-
-type QuoteMap = Record<string, number | undefined>;
-
-function formatPrice(price: number, currency: string) {
-  return new Intl.NumberFormat(currency === "USD" ? "en-US" : "ko-KR", {
-    style: "currency",
-    currency,
-  }).format(price);
-}
+import StockList, { type Stock, type QuoteMap } from "@/components/home/StockList";
+import MyInvestmentCard from "@/components/home/MyInvestmentCard";
+import RankingPreview from "@/components/home/RankingPreview";
+import IndexCardGrid, { buildMockIndices } from "@/components/home/IndexCardGrid";
+import SchedulePanel, { buildMockSchedule } from "@/components/home/SchedulePanel";
 
 function getMarketStatus(): { open: boolean; label: string } {
   const kst = new Date(
@@ -154,190 +140,99 @@ export default function Home() {
   const watchlistStocks = stocks.filter((s) => watchlist[s.id]);
 
   return (
-    <div className="flex flex-1 flex-col bg-page px-6 py-10">
-      <div className="mx-auto w-full max-w-2xl space-y-8">
-        {/* 헤더 */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-fg-primary">
-              주모, 모의투자 플랫폼
-            </h1>
-            <div className="mt-2 flex items-center gap-2">
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-medium ${
-                  marketStatus.open
-                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                    : "bg-surface text-fg-secondary"
-                }`}
-              >
-                {marketStatus.label}
-              </span>
-              <span className="rounded-full bg-surface px-3 py-1 text-xs font-medium text-fg-secondary">
-                지연 시세
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/feed"
-              className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
+    <div className="flex flex-1 flex-col bg-page px-4 py-6 sm:px-6 lg:py-10">
+      <div className="mx-auto w-full max-w-7xl space-y-8">
+        {/* 페이지 제목 + 장 상태 뱃지 (내비는 전역 TopNav로 이동) */}
+        <div>
+          <h1 className="text-xl font-semibold text-fg-primary">
+            주모, 모의투자 플랫폼
+          </h1>
+          <div className="mt-2 flex items-center gap-2">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-medium ${
+                marketStatus.open
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-surface text-fg-secondary"
+              }`}
             >
-              피드
-            </Link>
-            <Link
-              href="/ranking"
-              className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
-            >
-              랭킹
-            </Link>
-
-            {!userLoading && user && (
-              <Link
-                href="/account"
-                className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
-              >
-                내 계좌
-              </Link>
-            )}
-            {!userLoading && user && (
-              <Link
-                href="/mypage"
-                className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
-              >
-                마이페이지
-              </Link>
-            )}
-            {!userLoading && user && (
-              <button
-                type="button"
-                onClick={() => supabase.auth.signOut()}
-                className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
-              >
-                로그아웃
-              </button>
-            )}
-            {!userLoading && !user && (
-              <Link
-                href="/login"
-                className="flex h-10 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed"
-              >
-                로그인
-              </Link>
-            )}
+              {marketStatus.label}
+            </span>
+            <span className="rounded-full bg-surface px-3 py-1 text-xs font-medium text-fg-secondary">
+              지연 시세
+            </span>
           </div>
         </div>
 
-        {/* 관심종목 */}
-        {user && watchlistStocks.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="text-sm font-medium text-fg-secondary">
-              관심종목
-            </h2>
-            <StockList
-              stocks={watchlistStocks}
-              quotes={quotes}
-              watchlist={watchlist}
-              onToggle={toggleWatchlist}
-              canToggle={!!accountId}
-            />
-          </section>
-        )}
+        {/* 3컬럼 셸: 모바일 단일 스택, lg부터 좌/중앙/우.
+            모바일 순서는 중앙(종목) 먼저 → 관심종목 → 우 패널 */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)_300px]">
+          {/* 좌 사이드바 */}
+          <aside className="order-2 space-y-6 lg:order-1">
+            {/* 내 투자 요약 (실데이터) */}
+            <MyInvestmentCard userId={user?.id ?? null} authLoading={userLoading} />
 
-        {/* 전체 종목 */}
-        <section className="space-y-3">
-          <h2 className="text-sm font-medium text-fg-secondary">
-            전체 종목
-          </h2>
+            {/* 관심종목 (기존 기능 — 이동만) */}
+            {user && watchlistStocks.length > 0 && (
+              <section className="space-y-3">
+                <h2 className="text-sm font-medium text-fg-secondary">
+                  관심종목
+                </h2>
+                <StockList
+                  stocks={watchlistStocks}
+                  quotes={quotes}
+                  watchlist={watchlist}
+                  onToggle={toggleWatchlist}
+                  canToggle={!!accountId}
+                />
+              </section>
+            )}
+          </aside>
 
-          {loadingStocks && (
-            <p className="text-sm text-fg-secondary">
-              불러오는 중...
-            </p>
-          )}
+          {/* 중앙 메인 */}
+          <main className="order-1 space-y-6 lg:order-2">
+            {/* 지수 카드 그리드 (목업) */}
+            <IndexCardGrid indices={buildMockIndices()} />
 
-          {!loadingStocks && stocks.length === 0 && (
-            <p className="text-sm text-fg-secondary">
-              등록된 종목이 없습니다
-            </p>
-          )}
+            {/* 실시간 랭킹 프리뷰 (실데이터) */}
+            <RankingPreview userId={user?.id ?? null} authLoading={userLoading} />
 
-          {stocks.length > 0 && (
-            <StockList
-              stocks={stocks}
-              quotes={quotes}
-              watchlist={watchlist}
-              onToggle={toggleWatchlist}
-              canToggle={!!accountId}
-            />
-          )}
-        </section>
+            {/* 전체 종목 (기존 기능 — 이동만) */}
+            <section className="space-y-3">
+              <h2 className="text-sm font-medium text-fg-secondary">
+                전체 종목
+              </h2>
+
+              {loadingStocks && (
+                <p className="text-sm text-fg-secondary">
+                  불러오는 중...
+                </p>
+              )}
+
+              {!loadingStocks && stocks.length === 0 && (
+                <p className="text-sm text-fg-secondary">
+                  등록된 종목이 없습니다
+                </p>
+              )}
+
+              {stocks.length > 0 && (
+                <StockList
+                  stocks={stocks}
+                  quotes={quotes}
+                  watchlist={watchlist}
+                  onToggle={toggleWatchlist}
+                  canToggle={!!accountId}
+                />
+              )}
+            </section>
+          </main>
+
+          {/* 우 패널 */}
+          <aside className="order-3 space-y-6">
+            {/* 주요 일정 / 뉴스 (목업) */}
+            <SchedulePanel items={buildMockSchedule()} />
+          </aside>
+        </div>
       </div>
     </div>
-  );
-}
-
-function StockList({
-  stocks,
-  quotes,
-  watchlist,
-  onToggle,
-  canToggle,
-}: {
-  stocks: Stock[];
-  quotes: QuoteMap;
-  watchlist: Record<string, string>;
-  onToggle: (stockId: string) => void;
-  canToggle: boolean;
-}) {
-  return (
-    <ul className="divide-y divide-border rounded-3xl border border-border bg-card">
-      {stocks.map((s) => {
-        const name = s.name_ko ?? s.name_en ?? s.id;
-        const price = quotes[s.id];
-        const isWatched = !!watchlist[s.id];
-
-        return (
-          <li key={s.id}>
-            <Link
-              href={`/stocks/${s.id}`}
-              className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-surface"
-            >
-              <div className="flex items-center gap-3">
-                {canToggle && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onToggle(s.id);
-                    }}
-                    aria-label={isWatched ? "관심종목 제거" : "관심종목 추가"}
-                    className={`text-lg leading-none ${
-                      isWatched
-                        ? "text-yellow-500"
-                        : "text-fg-muted"
-                    }`}
-                  >
-                    {isWatched ? "★" : "☆"}
-                  </button>
-                )}
-                <div>
-                  <p className="text-sm font-medium text-fg-primary">
-                    {name}
-                  </p>
-                  <p className="text-xs text-fg-secondary">
-                    {s.ticker} · {s.market}
-                  </p>
-                </div>
-              </div>
-              <span className="text-sm font-medium text-fg-primary">
-                {price !== undefined ? formatPrice(price, s.currency) : "-"}
-              </span>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
   );
 }
