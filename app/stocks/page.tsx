@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
+import { SUPPORTED_MARKETS } from "@/lib/constants";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
 
 type StockResult = {
@@ -59,6 +60,7 @@ export default function StocksSearchPage() {
       const { data, error: searchError } = await supabase
         .from("stocks")
         .select("id, ticker, name_ko, name_en, market, currency")
+        .in("market", SUPPORTED_MARKETS) // 해외는 시세 조회 불가라 숨김 (#120)
         .or(
           `name_ko.ilike.%${escaped}%,name_en.ilike.%${escaped}%,ticker.ilike.%${escaped}%`
         )

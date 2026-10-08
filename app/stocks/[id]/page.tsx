@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
-import type { Candle } from "@/app/api/candles/[stockId]/route";
+import type { Candle, CandlePeriod } from "@/app/api/candles/[stockId]/route";
+import type { OrderBookData } from "@/app/api/orderbook/[stockId]/route";
 import StockHeader from "./StockHeader";
 import StockTabs from "./StockTabs";
 import OrderPanel from "./OrderPanel";
@@ -66,6 +67,9 @@ export default function StockTradePage({
   const [candles, setCandles] = useState<Candle[] | null>(null);
   const [candlesLoading, setCandlesLoading] = useState(false);
   const [candlesError, setCandlesError] = useState<string | null>(null);
+  const [candlePeriod, setCandlePeriod] = useState<CandlePeriod>("D");
+  const [orderbook, setOrderbook] = useState<OrderBookData | null>(null);
+  const [orderbookError, setOrderbookError] = useState<string | null>(null);
 
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [transactionsLoading, setTransactionsLoading] = useState(false);
@@ -136,6 +140,40 @@ export default function StockTradePage({
     };
   }, [user, stockId]);
 
+  // 호가: 탭이 열려 있을 때만 폴링한다. 다른 탭으로 나가면 interval을 정리해
+  // 불필요한 KIS 호출을 막는다. 주기 3초 — KIS 실전 rate limit(초당 2건)에
+  // 여유를 두기 위함(현재가 폴링은 50초 DB 캐시라 KIS를 거의 때리지 않음).
+  useEffect(() => {
+    if (!user || activeTab !== "orderbook") return;
+
+    let active = true;
+
+    async function poll() {
+      try {
+        const res = await fetch(`/api/orderbook/${stockId}`);
+        if (!active) return;
+
+        if (!res.ok) {
+          setOrderbookError("호가를 불러오지 못했습니다");
+          return;
+        }
+
+        const data: OrderBookData = await res.json();
+        setOrderbook(data);
+        setOrderbookError(null);
+      } catch {
+        if (active) setOrderbookError("호가를 불러오지 못했습니다");
+      }
+    }
+
+    poll();
+    const interval = setInterval(poll, 3000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [user, stockId, activeTab]);
+
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 3000);
@@ -152,18 +190,18 @@ export default function StockTradePage({
       setCandlesError(null);
 
       try {
-        const res = await fetch(`/api/candles/${stockId}`);
+        const res = await fetch(`/api/candles/${stockId}?period=${candlePeriod}`);
         if (!active) return;
 
         if (!res.ok) {
-          setCandlesError("일봉 데이터를 불러오지 못했습니다");
+          setCandlesError("차트 데이터를 불러오지 못했습니다");
           return;
         }
 
         const data: { candles: Candle[] } = await res.json();
         setCandles(data.candles);
       } catch {
-        if (active) setCandlesError("일봉 데이터를 불러오지 못했습니다");
+        if (active) setCandlesError("차트 데이터를 불러오지 못했습니다");
       } finally {
         if (active) setCandlesLoading(false);
       }
@@ -173,7 +211,15 @@ export default function StockTradePage({
     return () => {
       active = false;
     };
-  }, [activeTab, candles, stockId]);
+    // candlePeriod 변경 시에는 아래 핸들러가 candles를 null로 되돌려 재조회된다
+  }, [activeTab, candles, stockId, candlePeriod]);
+
+  // 기간 전환: candles를 비워 위 effect의 "null이면 조회" 경로를 그대로 태운다
+  const changeCandlePeriod = (next: CandlePeriod) => {
+    if (next === candlePeriod) return;
+    setCandlePeriod(next);
+    setCandles(null);
+  };
 
   useEffect(() => {
     if (activeTab !== "history" || transactions !== null) return;
@@ -292,6 +338,10 @@ export default function StockTradePage({
             candles={candles}
             candlesLoading={candlesLoading}
             candlesError={candlesError}
+            candlePeriod={candlePeriod}
+            onCandlePeriodChange={changeCandlePeriod}
+            orderbook={orderbook}
+            orderbookError={orderbookError}
             transactions={transactions}
             transactionsLoading={transactionsLoading}
             transactionsError={transactionsError}
