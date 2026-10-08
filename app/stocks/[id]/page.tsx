@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
 import type { Candle, CandlePeriod } from "@/app/api/candles/[stockId]/route";
+import type { OrderBookData } from "@/app/api/orderbook/[stockId]/route";
 import StockHeader from "./StockHeader";
 import StockTabs from "./StockTabs";
 import OrderPanel from "./OrderPanel";
@@ -67,6 +68,8 @@ export default function StockTradePage({
   const [candlesLoading, setCandlesLoading] = useState(false);
   const [candlesError, setCandlesError] = useState<string | null>(null);
   const [candlePeriod, setCandlePeriod] = useState<CandlePeriod>("D");
+  const [orderbook, setOrderbook] = useState<OrderBookData | null>(null);
+  const [orderbookError, setOrderbookError] = useState<string | null>(null);
 
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [transactionsLoading, setTransactionsLoading] = useState(false);
@@ -136,6 +139,40 @@ export default function StockTradePage({
       clearInterval(interval);
     };
   }, [user, stockId]);
+
+  // 호가: 탭이 열려 있을 때만 폴링한다. 다른 탭으로 나가면 interval을 정리해
+  // 불필요한 KIS 호출을 막는다. 주기 3초 — KIS 실전 rate limit(초당 2건)에
+  // 여유를 두기 위함(현재가 폴링은 50초 DB 캐시라 KIS를 거의 때리지 않음).
+  useEffect(() => {
+    if (!user || activeTab !== "orderbook") return;
+
+    let active = true;
+
+    async function poll() {
+      try {
+        const res = await fetch(`/api/orderbook/${stockId}`);
+        if (!active) return;
+
+        if (!res.ok) {
+          setOrderbookError("호가를 불러오지 못했습니다");
+          return;
+        }
+
+        const data: OrderBookData = await res.json();
+        setOrderbook(data);
+        setOrderbookError(null);
+      } catch {
+        if (active) setOrderbookError("호가를 불러오지 못했습니다");
+      }
+    }
+
+    poll();
+    const interval = setInterval(poll, 3000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [user, stockId, activeTab]);
 
   useEffect(() => {
     if (!toast) return;
@@ -303,6 +340,8 @@ export default function StockTradePage({
             candlesError={candlesError}
             candlePeriod={candlePeriod}
             onCandlePeriodChange={changeCandlePeriod}
+            orderbook={orderbook}
+            orderbookError={orderbookError}
             transactions={transactions}
             transactionsLoading={transactionsLoading}
             transactionsError={transactionsError}

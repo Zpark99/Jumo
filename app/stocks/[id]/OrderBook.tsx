@@ -1,48 +1,6 @@
+import type { OrderBookLevel } from "@/app/api/orderbook/[stockId]/route";
+
 import { formatPrice } from "./types";
-
-export type OrderBookLevel = {
-  price: number;
-  quantity: number;
-};
-
-export type OrderBookData = {
-  asks: OrderBookLevel[]; // 매도 호가 (위→아래: 높은 가격 먼저)
-  bids: OrderBookLevel[]; // 매수 호가 (위→아래: 현재가에 가까운 가격 먼저)
-};
-
-// 한국 KRW 호가단위 근사. 정식 규정은 가격대별로 더 세분화됨.
-// ponytail: 단순 계단 근사, KIS 호가 API 연동 시 실제 단위로 교체
-function tickSize(price: number, currency: string): number {
-  if (currency === "USD") return 0.01;
-  if (price < 2000) return 1;
-  if (price < 5000) return 5;
-  if (price < 20000) return 10;
-  if (price < 50000) return 50;
-  if (price < 200000) return 100;
-  if (price < 500000) return 500;
-  return 1000;
-}
-
-// 목업 호가 생성 — 현재가 기준 ±호가단위로 10호가를 결정적으로 생성(렌더마다 흔들리지 않음).
-// UI ↔ 데이터 분리: 나중에 이 함수 대신 KIS 호가 API 응답을 OrderBook에 그대로 넘기면 됨.
-export function buildMockOrderBook(
-  price: number,
-  currency: string
-): OrderBookData {
-  const tick = tickSize(price, currency);
-  // 잔량 고정 패턴 (결정적) — offset 5→1 (매도 위→아래), offset 1→5 (매수 위→아래)
-  const askQty = [3120, 5580, 2240, 8010, 4670];
-  const bidQty = [6450, 3890, 7220, 2980, 5110];
-  const asks = askQty.map((quantity, i) => ({
-    price: price + tick * (askQty.length - i),
-    quantity,
-  }));
-  const bids = bidQty.map((quantity, i) => ({
-    price: price - tick * (i + 1),
-    quantity,
-  }));
-  return { asks, bids };
-}
 
 function QtyCell({
   quantity,
