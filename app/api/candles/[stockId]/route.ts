@@ -25,6 +25,17 @@ export type Candle = {
 
 const CANDLE_DAYS = 100;
 
+// 기간별 조회 구간. KIS는 한 번에 최대 100건을 주므로, 100봉을 채울 만큼
+// 거슬러 올라간다(주봉 ~114주, 월봉 ~120개월).
+export const CANDLE_PERIODS = ["D", "W", "M"] as const;
+export type CandlePeriod = (typeof CANDLE_PERIODS)[number];
+
+const LOOKBACK_DAYS: Record<CandlePeriod, number> = {
+  D: CANDLE_DAYS * 2,
+  W: 800,
+  M: 3650,
+};
+
 function formatDate(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -32,7 +43,11 @@ function formatDate(d: Date): string {
   return `${y}${m}${day}`;
 }
 
-async function fetchKisCandles(code: string, token: string): Promise<KisCandleResponse> {
+async function fetchKisCandles(
+  code: string,
+  token: string,
+  period: CandlePeriod
+): Promise<KisCandleResponse> {
   const baseUrl = getKisBaseUrl();
   const url = new URL(
     `${baseUrl}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice`
@@ -40,13 +55,14 @@ async function fetchKisCandles(code: string, token: string): Promise<KisCandleRe
 
   const today = new Date();
   const start = new Date(today);
-  start.setDate(start.getDate() - CANDLE_DAYS * 2);
+  start.setDate(start.getDate() - LOOKBACK_DAYS[period]);
 
   url.searchParams.set("FID_COND_MRKT_DIV_CODE", "J");
   url.searchParams.set("FID_INPUT_ISCD", code);
   url.searchParams.set("FID_INPUT_DATE_1", formatDate(start));
   url.searchParams.set("FID_INPUT_DATE_2", formatDate(today));
-  url.searchParams.set("FID_PERIOD_DIV_CODE", "D");
+  // 일/주/월봉 모두 동일 TR(FHKST03010100), 이 코드만 D/W/M으로 바뀐다
+  url.searchParams.set("FID_PERIOD_DIV_CODE", period);
   url.searchParams.set("FID_ORG_ADJ_PRC", "0");
 
   const res = await fetch(url.toString(), {
@@ -61,16 +77,21 @@ async function fetchKisCandles(code: string, token: string): Promise<KisCandleRe
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ stockId: string }> }
 ) {
   const { stockId } = await params;
   // KIS 호출에만 접두사 제거 (/api/quote와 동일 규칙)
   const code = stockId.replace(/^(KR|US)-/, "");
 
+  const raw = request.nextUrl.searchParams.get("period");
+  const period: CandlePeriod = CANDLE_PERIODS.includes(raw as CandlePeriod)
+    ? (raw as CandlePeriod)
+    : "D"; // 기본 일봉 (기존 동작 유지)
+
   try {
     const token = await getKisToken();
-    const kisData = await fetchKisCandles(code, token);
+    const kisData = await fetchKisCandles(code, token, period);
 
     if (kisData.rt_cd !== "0") {
       return Response.json({ error: "CANDLES_NOT_FOUND" }, { status: 404 });
