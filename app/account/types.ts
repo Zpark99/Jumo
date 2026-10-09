@@ -26,6 +26,15 @@ export type Transaction = {
   stocks: { name_ko: string | null; name_en: string | null } | null;
 };
 
+// account_total_assets_krw() 기준이라 KRW만 집계됨(USD 현금·종목 미포함).
+// pnl_krw·return_rate는 시드(initial_seed_krw) 대비 누적값.
+export type AssetSnapshot = {
+  total_value_krw: number;
+  pnl_krw: number;
+  return_rate: number;
+  created_at: string;
+};
+
 export function formatPrice(price: number, currency: string) {
   return new Intl.NumberFormat(currency === "USD" ? "en-US" : "ko-KR", {
     style: "currency",

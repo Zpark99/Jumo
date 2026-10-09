@@ -10,7 +10,7 @@ import AccountHeader from "./AccountHeader";
 import CashCard from "./CashCard";
 import HoldingList from "./HoldingList";
 import TransactionList from "./TransactionList";
-import type { Account, Holding, Transaction } from "./types";
+import type { Account, AssetSnapshot, Holding, Transaction } from "./types";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function AccountPage() {
   const [account, setAccount] = useState<Account | null>(null);
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [snapshot, setSnapshot] = useState<AssetSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,7 +51,7 @@ export default function AccountPage() {
         return;
       }
 
-      const [{ data: holdingRows }, { data: txRows }] = await Promise.all([
+      const [{ data: holdingRows }, { data: txRows }, { data: snapshotRow }] = await Promise.all([
         supabase
           .from("holdings")
           .select("stock_id, quantity, avg_price, currency, stocks(name_ko, name_en, ticker)")
@@ -61,6 +62,14 @@ export default function AccountPage() {
           .eq("account_id", accountRow.id)
           .order("executed_at", { ascending: false })
           .limit(20),
+        // 헤더용 최신 스냅샷 (매일 00:00 KST cron + 계좌 생성 트리거가 적재)
+        supabase
+          .from("asset_snapshots")
+          .select("total_value_krw, pnl_krw, return_rate, created_at")
+          .eq("account_id", accountRow.id)
+          .order("snapshot_date", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ]);
 
       let quotesByStock: Record<string, number> = {};
@@ -92,6 +101,7 @@ export default function AccountPage() {
           stocks: Array.isArray(t.stocks) ? t.stocks[0] ?? null : t.stocks,
         }))
       );
+      setSnapshot(snapshotRow);
       setLoading(false);
     }
 
@@ -108,7 +118,7 @@ export default function AccountPage() {
   return (
     <div className="flex flex-1 flex-col bg-page px-6 py-10">
       <div className="mx-auto w-full max-w-5xl space-y-6">
-        <AccountHeader />
+        <AccountHeader ready={!loading && account !== null} snapshot={snapshot} />
 
         {error && <p className="text-sm text-danger">{error}</p>}
 
