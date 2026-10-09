@@ -193,7 +193,7 @@ export default function Home() {
           {/* 중앙 메인 */}
           <main className="order-1 space-y-6 lg:order-2">
             {/* 지수 카드 그리드 (목업) */}
-            <IndexCardGrid indices={buildMockIndices()} />
+            <IndexCardGrid indices={buildMockIndices()} isExample />
 
             {/* 실시간 랭킹 프리뷰 (실데이터) */}
             <RankingPreview userId={user?.id ?? null} authLoading={userLoading} />
@@ -231,7 +231,7 @@ export default function Home() {
           {/* 우 패널 */}
           <aside className="order-3 space-y-6">
             {/* 주요 일정 / 뉴스 (목업) */}
-            <SchedulePanel items={buildMockSchedule()} />
+            <SchedulePanel items={buildMockSchedule()} isExample />
           </aside>
         </div>
       </div>

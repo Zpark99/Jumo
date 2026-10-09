@@ -171,7 +171,7 @@ export default function StockTabs({
           </p>
         )
       ) : activeTab === "news" ? (
-        <StockNews items={buildMockNews(stockName)} />
+        <StockNews items={buildMockNews(stockName)} isExample />
       ) : activeTab === "history" ? (
         <div className="mt-8">
           {transactionsLoading && (

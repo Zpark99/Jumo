@@ -6,38 +6,12 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
 
-type Account = {
-  id: string;
-  cash_krw: number;
-  cash_usd: number;
-};
-
-type Holding = {
-  stock_id: string;
-  quantity: number;
-  avg_price: number;
-  currency: string;
-  stocks: { name_ko: string | null; name_en: string | null; ticker: string } | null;
-  currentPrice: number | null;
-};
-
-type Transaction = {
-  id: string;
-  stock_id: string;
-  side: string;
-  quantity: number;
-  price: number;
-  currency: string;
-  executed_at: string;
-  stocks: { name_ko: string | null; name_en: string | null } | null;
-};
-
-function formatPrice(price: number, currency: string) {
-  return new Intl.NumberFormat(currency === "USD" ? "en-US" : "ko-KR", {
-    style: "currency",
-    currency,
-  }).format(price);
-}
+import AccountHeader from "./AccountHeader";
+import AssetTrendChart from "./AssetTrendChart";
+import CashCard from "./CashCard";
+import HoldingList from "./HoldingList";
+import TransactionList from "./TransactionList";
+import type { Account, AssetSnapshot, Holding, Transaction } from "./types";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -46,6 +20,7 @@ export default function AccountPage() {
   const [account, setAccount] = useState<Account | null>(null);
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [snapshots, setSnapshots] = useState<AssetSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,7 +52,7 @@ export default function AccountPage() {
         return;
       }
 
-      const [{ data: holdingRows }, { data: txRows }] = await Promise.all([
+      const [{ data: holdingRows }, { data: txRows }, { data: snapshotRows }] = await Promise.all([
         supabase
           .from("holdings")
           .select("stock_id, quantity, avg_price, currency, stocks(name_ko, name_en, ticker)")
@@ -88,6 +63,14 @@ export default function AccountPage() {
           .eq("account_id", accountRow.id)
           .order("executed_at", { ascending: false })
           .limit(20),
+        // 일별 스냅샷 (매일 00:00 KST cron + 계좌 생성 트리거가 적재).
+        // 헤더(마지막 행)와 추이 그래프가 같은 결과를 써서 헤더 값 = 그래프 끝점.
+        // ponytail: 하루 1행이라 전체 조회. max_rows(1000) ≈ 2.7년치에 닿으면 기간 제한(gte snapshot_date)
+        supabase
+          .from("asset_snapshots")
+          .select("snapshot_date, total_value_krw, pnl_krw, return_rate, created_at")
+          .eq("account_id", accountRow.id)
+          .order("snapshot_date", { ascending: true }),
       ]);
 
       let quotesByStock: Record<string, number> = {};
@@ -119,6 +102,7 @@ export default function AccountPage() {
           stocks: Array.isArray(t.stocks) ? t.stocks[0] ?? null : t.stocks,
         }))
       );
+      setSnapshots(snapshotRows ?? []);
       setLoading(false);
     }
 
@@ -134,131 +118,26 @@ export default function AccountPage() {
 
   return (
     <div className="flex flex-1 flex-col bg-page px-6 py-10">
-      <div className="mx-auto w-full max-w-3xl space-y-6">
-        <h1 className="text-xl font-semibold text-fg-primary">
-          내 계좌
-        </h1>
+      <div className="mx-auto w-full max-w-5xl space-y-6">
+        <AccountHeader ready={!loading && account !== null} snapshot={snapshots.at(-1) ?? null} />
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && <p className="text-sm text-danger">{error}</p>}
 
+        {/* 2컬럼: lg부터 좌(보유·체결) / 우(현금). 모바일은 DOM 순서대로
+            현금 → 보유 → 체결 (기존 단일 컬럼 순서 유지) */}
         {loading ? (
           <p className="text-sm text-fg-secondary">불러오는 중...</p>
         ) : (
-          <>
-            {/* 현금 잔고 */}
-            <section className="rounded-3xl border border-border bg-card p-6">
-              <h2 className="text-sm font-medium text-fg-secondary">
-                현금 잔고
-              </h2>
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-fg-secondary">KRW</p>
-                  <p className="text-lg font-semibold text-fg-primary">
-                    {formatPrice(account?.cash_krw ?? 0, "KRW")}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-fg-secondary">USD</p>
-                  <p className="text-lg font-semibold text-fg-primary">
-                    {formatPrice(account?.cash_usd ?? 0, "USD")}
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            {/* 보유 종목 */}
-            <section className="rounded-3xl border border-border bg-card p-6">
-              <h2 className="text-sm font-medium text-fg-secondary">
-                보유 종목
-              </h2>
-
-              {holdings.length === 0 ? (
-                <p className="mt-4 text-sm text-fg-secondary">
-                  보유 중인 종목이 없습니다
-                </p>
-              ) : (
-                <ul className="mt-4 divide-y divide-border">
-                  {holdings.map((h) => {
-                    const pnl =
-                      h.currentPrice !== null
-                        ? (h.currentPrice - h.avg_price) * h.quantity
-                        : null;
-                    const name = h.stocks?.name_ko ?? h.stocks?.name_en ?? h.stock_id;
-
-                    return (
-                      <li
-                        key={h.stock_id}
-                        className="flex items-center justify-between py-3"
-                      >
-                        <div>
-                          <p className="text-sm font-medium text-fg-primary">
-                            {name}
-                          </p>
-                          <p className="text-xs text-fg-secondary">
-                            {h.quantity}주 · 평단 {formatPrice(h.avg_price, h.currency)}
-                          </p>
-                        </div>
-                        <p
-                          className={
-                            pnl === null
-                              ? "text-sm text-fg-muted"
-                              : pnl > 0
-                                ? "text-sm font-medium text-price-up"
-                                : pnl < 0
-                                  ? "text-sm font-medium text-price-down"
-                                  : "text-sm font-medium text-price-flat"
-                          }
-                        >
-                          {pnl !== null ? formatPrice(pnl, h.currency) : "-"}
-                        </p>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </section>
-
-            {/* 최근 체결내역 */}
-            <section className="rounded-3xl border border-border bg-card p-6">
-              <h2 className="text-sm font-medium text-fg-secondary">
-                최근 체결내역
-              </h2>
-
-              {transactions.length === 0 ? (
-                <p className="mt-4 text-sm text-fg-secondary">
-                  체결 내역이 없습니다
-                </p>
-              ) : (
-                <ul className="mt-4 divide-y divide-border">
-                  {transactions.map((t) => {
-                    const name = t.stocks?.name_ko ?? t.stocks?.name_en ?? t.stock_id;
-
-                    return (
-                      <li
-                        key={t.id}
-                        className="flex items-center justify-between py-3"
-                      >
-                        <div>
-                          <p className="text-sm font-medium text-fg-primary">
-                            {name}{" "}
-                            <span className="text-fg-muted">
-                              ({t.side === "buy" ? "매수" : "매도"})
-                            </span>
-                          </p>
-                          <p className="text-xs text-fg-secondary">
-                            {new Date(t.executed_at).toLocaleString("ko-KR")}
-                          </p>
-                        </div>
-                        <p className="text-sm text-fg-primary">
-                          {t.quantity}주 · {formatPrice(t.price, t.currency)}
-                        </p>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </section>
-          </>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
+            <div className="space-y-6 lg:order-2">
+              <CashCard account={account} />
+            </div>
+            <div className="space-y-6 lg:order-1">
+              <AssetTrendChart snapshots={snapshots} />
+              <HoldingList holdings={holdings} />
+              <TransactionList transactions={transactions} />
+            </div>
+          </div>
         )}
       </div>
     </div>
