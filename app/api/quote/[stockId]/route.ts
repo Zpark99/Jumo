@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 
 import { QUOTE_CACHE_TTL_MS } from "@/lib/constants";
 import { getKisBaseUrl, getKisToken } from "@/lib/kis";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 type KisQuoteResponse = {
   rt_cd: string;
@@ -96,9 +97,9 @@ export async function GET(
       fetched_at,
     };
 
-    // execute_order RPC가 price_quotes를 읽으므로 반드시 저장
-    // SECURITY DEFINER 함수로 호출 → RLS 우회
-    const { error: upsertError } = await supabase.rpc("upsert_price_quote", {
+    // execute_order RPC가 price_quotes를 읽으므로 반드시 저장.
+    // 시세 기록은 service_role 전용(#137) — anon 키로 열어두면 누구나 임의 시세를 넣을 수 있다.
+    const { error: upsertError } = await supabaseAdmin.rpc("upsert_price_quote", {
       p_stock_id: stockId,
       p_price: quote.price,
       p_prev_close: quote.prev_close,
