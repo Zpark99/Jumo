@@ -29,6 +29,7 @@ export type Transaction = {
 // account_total_assets_krw() 기준이라 KRW만 집계됨(USD 현금·종목 미포함).
 // pnl_krw·return_rate는 시드(initial_seed_krw) 대비 누적값.
 export type AssetSnapshot = {
+  snapshot_date: string; // KST 날짜 "YYYY-MM-DD"
   total_value_krw: number;
   pnl_krw: number;
   return_rate: number;
