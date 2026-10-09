@@ -1,3 +1,5 @@
+import ExampleBadge from "@/components/ExampleBadge";
+
 export type MarketIndex = {
   id: string;
   name: string;
@@ -98,13 +100,17 @@ function IndexCard({ index }: { index: MarketIndex }) {
 
 type Props = {
   indices: MarketIndex[];
+  isExample?: boolean; // 목업을 넘길 때 true → "예시" 배지
 };
 
 // 지수 카드 그리드. 순수 표시 컴포넌트 — 데이터는 props로 받음(목업/실시간 무관).
-export default function IndexCardGrid({ indices }: Props) {
+export default function IndexCardGrid({ indices, isExample = false }: Props) {
   return (
     <section className="rounded-3xl border border-border bg-card p-6">
-      <h2 className="text-sm font-medium text-fg-secondary">지수</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="text-sm font-medium text-fg-secondary">지수</h2>
+        {isExample && <ExampleBadge />}
+      </div>
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {indices.map((index) => (
           <IndexCard key={index.id} index={index} />
