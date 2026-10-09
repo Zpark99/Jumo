@@ -1,3 +1,5 @@
+import ExampleBadge from "@/components/ExampleBadge";
+
 export type ScheduleItem = {
   id: string;
   date: string; // 표시용 문구 (목업). 실제 연동 시 date로 교체 가능
@@ -20,13 +22,17 @@ export function buildMockSchedule(): ScheduleItem[] {
 
 type Props = {
   items: ScheduleItem[];
+  isExample?: boolean; // 목업을 넘길 때 true → "예시" 배지
 };
 
 // 주요 일정 패널. 순수 표시 컴포넌트 — 데이터는 props로 받음(목업/실시간 무관).
-export default function SchedulePanel({ items }: Props) {
+export default function SchedulePanel({ items, isExample = false }: Props) {
   return (
     <section className="rounded-3xl border border-border bg-card p-6">
-      <h2 className="text-sm font-medium text-fg-secondary">주요 일정 / 뉴스</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="text-sm font-medium text-fg-secondary">주요 일정 / 뉴스</h2>
+        {isExample && <ExampleBadge />}
+      </div>
       {items.length === 0 ? (
         <p className="mt-4 text-sm text-fg-secondary">예정된 일정이 없습니다</p>
       ) : (
