@@ -13,6 +13,7 @@ const HIDDEN_PATHS = ["/login"];
 type NavLink = { href: string; label: string };
 
 const BASE_LINKS: NavLink[] = [
+  { href: "/stocks", label: "종목" },
   { href: "/feed", label: "피드" },
   { href: "/ranking", label: "랭킹" },
 ];
