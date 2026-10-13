@@ -3,13 +3,23 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
-import { SUPPORTED_MARKETS } from "@/lib/constants";
+import { INDEX_CACHE_TTL_SEC, SUPPORTED_MARKETS } from "@/lib/constants";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
+import type { DomesticIndex, DomesticIndicesResponse } from "@/app/api/indices/route";
 import StockList, { type Stock, type QuoteMap } from "@/components/home/StockList";
 import MyInvestmentCard from "@/components/home/MyInvestmentCard";
 import RankingPreview from "@/components/home/RankingPreview";
-import IndexCardGrid, { buildMockIndices } from "@/components/home/IndexCardGrid";
+import IndexCardGrid, {
+  buildMockIndices,
+  type MarketIndex,
+} from "@/components/home/IndexCardGrid";
 import SchedulePanel, { buildMockSchedule } from "@/components/home/SchedulePanel";
+
+// 조회 전·실패 시 카드 자리. 값이 null이라 "-"로 그려진다(목업 대체 금지, #108)
+const EMPTY_DOMESTIC_INDICES: DomesticIndex[] = [
+  { id: "kospi", name: "코스피", value: null, change: null, changePct: null },
+  { id: "kosdaq", name: "코스닥", value: null, change: null, changePct: null },
+];
 
 function getMarketStatus(): { open: boolean; label: string } {
   const kst = new Date(
@@ -35,6 +45,44 @@ export default function Home() {
   const [watchlist, setWatchlist] = useState<Record<string, string>>({});
 
   const marketStatus = useMemo(() => getMarketStatus(), []);
+
+  const [domesticIndices, setDomesticIndices] = useState<DomesticIndex[]>(
+    EMPTY_DOMESTIC_INDICES
+  );
+
+  // 국내지수(코스피·코스닥) 실데이터. 서버 캐시 TTL과 같은 주기로 폴링 — 더 자주
+  // 불러도 캐시가 같은 값을 돌려줄 뿐이라 의미 없다 (#108)
+  useEffect(() => {
+    let active = true;
+
+    async function poll() {
+      try {
+        const res = await fetch("/api/indices");
+        if (!active) return;
+        if (!res.ok) {
+          setDomesticIndices(EMPTY_DOMESTIC_INDICES);
+          return;
+        }
+        const data: DomesticIndicesResponse = await res.json();
+        setDomesticIndices(data.indices);
+      } catch {
+        if (active) setDomesticIndices(EMPTY_DOMESTIC_INDICES);
+      }
+    }
+
+    poll();
+    const interval = setInterval(poll, INDEX_CACHE_TTL_SEC * 1000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // 실데이터 카드(스파크라인 없음) 앞, "예시" 목업 카드 뒤
+  const indices: MarketIndex[] = [
+    ...domesticIndices.map((i) => ({ ...i, decimals: 2 })),
+    ...buildMockIndices(),
+  ];
 
   useEffect(() => {
     let active = true;
@@ -192,8 +240,8 @@ export default function Home() {
 
           {/* 중앙 메인 */}
           <main className="order-1 space-y-6 lg:order-2">
-            {/* 지수 카드 그리드 (목업) */}
-            <IndexCardGrid indices={buildMockIndices()} isExample />
+            {/* 지수 카드: 코스피·코스닥 실데이터 + 해외·환율·BTC "예시" (#108) */}
+            <IndexCardGrid indices={indices} />
 
             {/* 실시간 랭킹 프리뷰 (실데이터) */}
             <RankingPreview userId={user?.id ?? null} authLoading={userLoading} />
