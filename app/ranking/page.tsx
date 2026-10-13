@@ -188,7 +188,7 @@ export default function RankingPage() {
         <div>
           <h1 className="text-xl font-semibold text-fg-primary">누적 수익률 랭킹</h1>
           <p className="mt-1 text-sm text-fg-secondary">
-            가입 시드 대비 누적 수익률 기준
+            가입 시드 대비 누적 수익률 기준 · 매일 00:05·09:05 자동 집계
             {updatedAt && (
               <span className="tabular-nums"> · 마지막 집계 {formatUpdatedAt(updatedAt)}</span>
             )}
@@ -235,7 +235,7 @@ export default function RankingPage() {
                   아직 집계된 랭킹이 없습니다
                 </p>
                 <p className="mt-1 text-xs text-fg-muted">
-                  아래 버튼으로 지금 바로 계산할 수 있어요
+                  매일 00:05·09:05에 자동으로 집계됩니다. 지금 바로 계산할 수도 있어요
                 </p>
                 <button
                   type="button"
