@@ -298,6 +298,9 @@ export default function StockTradePage({
         setShowConfirm(false);
         setToast(side === "buy" ? "매수 체결 완료" : "매도 체결 완료");
         setHoldingQty(await fetchHoldingQty(stockId));
+        // 거래내역은 null이면 조회하는 lazy load라, 이미 열어본 뒤 체결하면 새 체결이
+        // 안 보인다. null로 되돌려 재조회시킨다(기간 전환의 candles와 같은 패턴)
+        setTransactions(null);
         router.refresh();
       } else {
         const reason = result?.reject_reason ?? null;
