@@ -103,7 +103,7 @@ export default function StocksSearchPage() {
           className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-fg-primary outline-none focus:border-brand"
         />
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && <p className="text-sm text-danger">{error}</p>}
 
         {searching && (
           <p className="text-sm text-fg-secondary">검색 중...</p>

@@ -25,9 +25,12 @@
   --color-price-up: #f04452;
   --color-price-down: #3182f6;
   --color-price-flat: #6b7684;
-  /* 위험 액션(삭제 등) 전용 — 등락 price-up(빨강)과 의미가 다름 */
+  /* 문제·주의: 에러 문구 + 위험 액션(삭제 등). 등락 price-up(빨강)과 의미가 다르므로 분리 (#130) */
   --color-danger: #e5484d;
   --color-danger-pressed: #d13639;
+  /* 긍정 상태: 성공 토스트·장중 배지. 등락 price-*와 분리. 흰 배경 5.93:1, surface 5.38:1, tint 위 5.26:1 */
+  --color-success: #14733a;
+  --color-success-tint: #e3f6ea;
 }
 
 .dark {
@@ -47,6 +50,8 @@
   --color-price-flat: #8b95a1;
   --color-danger: #ff6166;
   --color-danger-pressed: #f0474c;
+  --color-success: #4ade80; /* card 8.68:1, tint 위 7.14:1 */
+  --color-success-tint: #1b3a2b;
 }
 
 /* 사용: bg-page bg-surface bg-card border-border text-fg-primary bg-brand text-price-up ...

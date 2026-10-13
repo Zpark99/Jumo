@@ -201,7 +201,7 @@ export default function Home() {
             <span
               className={`rounded-full px-3 py-1 text-xs font-medium ${
                 marketStatus.open
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  ? "bg-success-tint text-success"
                   : "bg-surface text-fg-secondary"
               }`}
             >

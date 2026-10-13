@@ -178,8 +178,8 @@ export default function RankingPage() {
               </div>
             )}
 
-            {loadError && <p className="text-sm text-red-500">{loadError}</p>}
-            {calcError && <p className="text-sm text-red-500">{calcError}</p>}
+            {loadError && <p className="text-sm text-danger">{loadError}</p>}
+            {calcError && <p className="text-sm text-danger">{calcError}</p>}
 
             {loading ? (
               <p className="text-sm text-fg-secondary">
@@ -207,7 +207,7 @@ export default function RankingPage() {
                     <li
                       key={r.account_id}
                       className={`flex items-center justify-between px-6 py-4 ${
-                        isMe ? "bg-zinc-100 dark:bg-zinc-800/60" : ""
+                        isMe ? "bg-surface" : ""
                       }`}
                     >
                       <div className="flex items-center gap-3">

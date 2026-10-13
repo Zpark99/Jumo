@@ -148,7 +148,7 @@ export default function StockTabs({
               <p className="text-sm text-fg-secondary">불러오는 중...</p>
             )}
 
-            {candlesError && <p className="text-sm text-red-500">{candlesError}</p>}
+            {candlesError && <p className="text-sm text-danger">{candlesError}</p>}
 
             {!candlesLoading && !candlesError && candles && candles.length > 0 && (
               <CandleChart candles={candles} currency={currency} />
@@ -157,7 +157,7 @@ export default function StockTabs({
         </div>
       ) : activeTab === "orderbook" ? (
         orderbookError ? (
-          <p className="mt-8 text-sm text-red-500">{orderbookError}</p>
+          <p className="mt-8 text-sm text-danger">{orderbookError}</p>
         ) : orderbook ? (
           <OrderBook
             asks={orderbook.asks}
@@ -179,7 +179,7 @@ export default function StockTabs({
           )}
 
           {transactionsError && (
-            <p className="text-sm text-red-500">{transactionsError}</p>
+            <p className="text-sm text-danger">{transactionsError}</p>
           )}
 
           {!transactionsLoading &&
