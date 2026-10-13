@@ -29,10 +29,34 @@ function Card({ children }: { children: React.ReactNode }) {
   );
 }
 
+// 1~3위 배지 — /ranking의 RankBadge 축소판
+function RankBadge({ rank }: { rank: number | null }) {
+  if (rank === 1) {
+    return (
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">
+        1
+      </span>
+    );
+  }
+  if (rank === 2 || rank === 3) {
+    return (
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-tint text-[10px] font-bold text-brand">
+        {rank}
+      </span>
+    );
+  }
+  return (
+    <span className="flex h-5 w-5 shrink-0 items-center justify-center text-xs font-semibold tabular-nums text-fg-muted">
+      {rank ?? "-"}
+    </span>
+  );
+}
+
 function Header() {
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-sm font-medium text-fg-secondary">실시간 랭킹</h2>
+      {/* 가입 시드 대비 누적 수익률 (#67). "시즌"은 내부 집계 단위라 노출하지 않음 */}
+      <h2 className="text-sm font-medium text-fg-secondary">누적 수익률 랭킹</h2>
       <Link
         href="/ranking"
         className="text-xs font-medium text-fg-secondary underline hover:text-fg-primary"
@@ -100,7 +124,7 @@ export default function RankingPreview({
       <Card>
         <Header />
         <p className="mt-2 text-xs text-fg-muted">
-          로그인하고 실시간 랭킹을 확인하세요
+          로그인하고 누적 수익률 랭킹을 확인하세요
         </p>
       </Card>
     );
@@ -129,16 +153,14 @@ export default function RankingPreview({
               key={r.account_id}
               className="flex items-center justify-between"
             >
-              <span className="flex items-center gap-2">
-                <span className="w-5 text-xs font-semibold text-fg-muted">
-                  {r.rank ?? "-"}
-                </span>
-                <span className="text-xs text-fg-primary">
+              <span className="flex min-w-0 items-center gap-2">
+                <RankBadge rank={r.rank} />
+                <span className="truncate text-xs text-fg-primary">
                   {r.user_nickname ?? "알 수 없음"}
                 </span>
               </span>
               <span
-                className={`text-xs font-semibold ${rateColor(
+                className={`shrink-0 text-xs font-semibold tabular-nums ${rateColor(
                   r.return_rate ?? 0
                 )}`}
               >
