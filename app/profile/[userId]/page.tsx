@@ -196,7 +196,7 @@ export default function PublicProfilePage({
 
         {!userLoading && user && (
           <>
-            {loadError && <p className="text-sm text-red-500">{loadError}</p>}
+            {loadError && <p className="text-sm text-danger">{loadError}</p>}
 
             {loading ? (
               <p className="text-sm text-fg-secondary">
@@ -268,7 +268,7 @@ export default function PublicProfilePage({
                   </div>
 
                   {followError && (
-                    <p className="mt-2 text-sm text-red-500">{followError}</p>
+                    <p className="mt-2 text-sm text-danger">{followError}</p>
                   )}
                 </section>
 

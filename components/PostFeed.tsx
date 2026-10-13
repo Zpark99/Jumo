@@ -306,7 +306,7 @@ export default function PostFeed({
               className="w-full resize-none rounded-xl border border-border bg-surface p-3 text-sm text-fg-primary outline-none transition-colors focus:border-brand"
             />
             <div className="mt-2 flex items-center justify-between">
-              <span className={`text-xs ${overLimit ? "text-red-500" : "text-fg-muted"}`}>
+              <span className={`text-xs ${overLimit ? "text-danger" : "text-fg-muted"}`}>
                 {body.trim().length}/{MAX_BODY_LENGTH}
               </span>
               <button
@@ -318,7 +318,7 @@ export default function PostFeed({
                 {submitting ? "등록 중..." : "등록"}
               </button>
             </div>
-            {submitError && <p className="mt-2 text-sm text-red-500">{submitError}</p>}
+            {submitError && <p className="mt-2 text-sm text-danger">{submitError}</p>}
           </div>
         </div>
       </section>
@@ -342,8 +342,8 @@ export default function PostFeed({
       </div>
 
       {/* 목록 */}
-      {loadError && <p className="text-sm text-red-500">{loadError}</p>}
-      {reactionError && <p className="text-sm text-red-500">{reactionError}</p>}
+      {loadError && <p className="text-sm text-danger">{loadError}</p>}
+      {reactionError && <p className="text-sm text-danger">{reactionError}</p>}
 
       {loading ? (
         <p className="text-sm text-fg-secondary">불러오는 중...</p>

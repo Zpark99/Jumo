@@ -54,7 +54,7 @@ export default function StockHeader({
         )}
       </div>
 
-      {quoteError && <p className="mt-2 text-sm text-red-500">{quoteError}</p>}
+      {quoteError && <p className="mt-2 text-sm text-danger">{quoteError}</p>}
     </div>
   );
 }

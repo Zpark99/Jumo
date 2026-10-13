@@ -68,7 +68,7 @@ export default function RepostModal({ original, onClose, onSubmit }: Props) {
           <span
             className={`text-xs ${
               comment.trim().length > MAX_REPOST_LENGTH
-                ? "text-red-500"
+                ? "text-danger"
                 : "text-fg-muted"
             }`}
           >
@@ -98,7 +98,7 @@ export default function RepostModal({ original, onClose, onSubmit }: Props) {
           </p>
         </div>
 
-        {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+        {error && <p className="mt-2 text-sm text-danger">{error}</p>}
 
         <div className="mt-6 flex gap-3">
           <button

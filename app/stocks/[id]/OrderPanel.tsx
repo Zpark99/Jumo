@@ -65,7 +65,7 @@ export default function OrderPanel({
         </button>
 
         {orderError && !showConfirm && (
-          <p className="text-sm text-red-500">{orderError}</p>
+          <p className="text-sm text-danger">{orderError}</p>
         )}
       </div>
     </div>

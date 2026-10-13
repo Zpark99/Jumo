@@ -478,7 +478,7 @@ export default function PostDetailPage({
 
         {!userLoading && user && (
           <>
-            {loadError && <p className="text-sm text-red-500">{loadError}</p>}
+            {loadError && <p className="text-sm text-danger">{loadError}</p>}
 
             {postLoading ? (
               <p className="text-sm text-fg-secondary">
@@ -553,7 +553,7 @@ export default function PostDetailPage({
                     )}
                   </div>
                   {reactionError && (
-                    <p className="mt-2 text-sm text-red-500">{reactionError}</p>
+                    <p className="mt-2 text-sm text-danger">{reactionError}</p>
                   )}
                 </section>
 
@@ -623,7 +623,7 @@ export default function PostDetailPage({
                               </div>
                             </div>
                             {replySubmitError && (
-                              <p className="text-xs text-red-500">
+                              <p className="text-xs text-danger">
                                 {replySubmitError}
                               </p>
                             )}
@@ -679,7 +679,7 @@ export default function PostDetailPage({
                     </button>
                   </div>
                   {commentSubmitError && (
-                    <p className="mt-2 text-sm text-red-500">
+                    <p className="mt-2 text-sm text-danger">
                       {commentSubmitError}
                     </p>
                   )}
@@ -704,7 +704,7 @@ export default function PostDetailPage({
               {deleteTargetHasReplies && " 달려있는 답글도 함께 삭제됩니다."}
             </p>
             {deleteError && (
-              <p className="mt-2 text-sm text-red-500">{deleteError}</p>
+              <p className="mt-2 text-sm text-danger">{deleteError}</p>
             )}
             <div className="mt-6 flex gap-3">
               <button
