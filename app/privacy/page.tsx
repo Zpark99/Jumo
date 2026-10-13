@@ -64,7 +64,7 @@ export default function PrivacyPage() {
       <div className="mx-auto w-full max-w-2xl space-y-6 break-keep">
         <div>
           <h1 className="text-xl font-semibold text-fg-primary">개인정보처리방침</h1>
-          <p className="mt-1 text-sm text-fg-secondary">시행일 2026-10-31</p>
+          <p className="mt-1 text-sm text-fg-secondary">시행일 2026-10-13</p>
         </div>
 
         <section className="space-y-6 rounded-3xl border border-border bg-card p-6">
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
           ))}
 
           <p className="border-t border-border pt-6 text-xs text-fg-muted">
-            이 방침은 2026년 10월 31일부터 시행합니다.
+            이 방침은 2026년 10월 13일부터 시행합니다.
           </p>
         </section>
       </div>
