@@ -45,7 +45,8 @@ export default function TopNav() {
           type="button"
           onClick={() => {
             close();
-            supabase.auth.signOut();
+            // 이 기기만 로그아웃. 기본값(global)은 다른 기기·로컬 개발 세션까지 끊는다
+            supabase.auth.signOut({ scope: "local" });
           }}
           className={linkClass}
         >

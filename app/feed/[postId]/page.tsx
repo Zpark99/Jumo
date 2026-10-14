@@ -6,71 +6,24 @@ import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
-import { relativeTime } from "@/lib/relativeTime";
-import ReactionButtons, {
-  ReactionState,
-  ReactionType,
-} from "@/components/ReactionButtons";
-import QuotedPostCard, { QuotedPost } from "@/components/QuotedPostCard";
+import { ReactionState } from "@/components/ReactionButtons";
+import { QuotedPost } from "@/components/QuotedPostCard";
 import RepostModal from "@/components/RepostModal";
-
-type PostDetail = {
-  id: string;
-  author_id: string;
-  content: string;
-  created_at: string;
-  author_nickname: string | null;
-  author_icon: string | null;
-  like_count: number;
-  dislike_count: number;
-  comment_count: number;
-  my_reaction: ReactionType | null;
-  repost_of: string | null;
-};
-
-type CommentRow = {
-  id: string;
-  post_id: string;
-  author_id: string;
-  parent_comment_id: string | null;
-  content: string;
-  created_at: string;
-  author_nickname: string | null;
-  author_icon: string | null;
-};
-
-type CommentNode = CommentRow & { replies: CommentRow[] };
-
-const MAX_COMMENT_LENGTH = 300;
+import PostCard from "./PostCard";
+import CommentItem from "./CommentItem";
+import CommentForm from "./CommentForm";
+import {
+  buildCommentTree,
+  MAX_COMMENT_LENGTH,
+  type CommentRow,
+  type PostDetail,
+} from "./types";
 
 const POST_SELECT =
   "id, author_id, content, created_at, author_nickname, author_icon, like_count, dislike_count, comment_count, repost_of";
 
 const ORIGINAL_SELECT =
   "id, content, created_at, author_nickname, author_icon, repost_of";
-
-// 최상위 댓글(parent_comment_id null) 아래에 대댓글을 1단계만 붙인다.
-// rows는 created_at asc로 정렬되어 들어오므로 순서가 그대로 유지된다.
-function buildCommentTree(rows: CommentRow[]): CommentNode[] {
-  const topLevel: CommentNode[] = [];
-  const nodeById = new Map<string, CommentNode>();
-
-  for (const row of rows) {
-    if (row.parent_comment_id === null) {
-      const node: CommentNode = { ...row, replies: [] };
-      nodeById.set(row.id, node);
-      topLevel.push(node);
-    }
-  }
-
-  for (const row of rows) {
-    if (row.parent_comment_id !== null) {
-      nodeById.get(row.parent_comment_id)?.replies.push(row);
-    }
-  }
-
-  return topLevel;
-}
 
 async function fetchPost(postId: string) {
   return supabase
@@ -136,37 +89,6 @@ async function loadPostAndComments(postId: string, userId: string) {
     fetchMyReaction(postId, userId),
   ]);
   return { postResult, commentsResult, reactionResult };
-}
-
-function CommentBody({ comment }: { comment: CommentRow }) {
-  return (
-    <>
-      <div className="flex items-center gap-2">
-        <Link
-          href={`/profile/${comment.author_id}`}
-          className="flex items-center gap-2 hover:underline"
-        >
-          {comment.author_icon && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={comment.author_icon}
-              alt=""
-              className="h-5 w-5 rounded-full object-cover"
-            />
-          )}
-          <span className="text-sm font-medium text-fg-primary">
-            {comment.author_nickname ?? "알 수 없음"}
-          </span>
-        </Link>
-        <span className="text-xs text-fg-muted">
-          · {relativeTime(comment.created_at)}
-        </span>
-      </div>
-      <p className="mt-1 whitespace-pre-wrap text-sm text-fg-primary">
-        {comment.content}
-      </p>
-    </>
-  );
 }
 
 export default function PostDetailPage({
@@ -448,17 +370,15 @@ export default function PostDetailPage({
     : false;
 
   return (
-    <div className="flex flex-1 flex-col bg-page px-6 py-10">
-      <div className="mx-auto w-full max-w-2xl space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-fg-primary">
-            글 상세
-          </h1>
+    <div className="flex flex-1 flex-col bg-page px-4 py-6 sm:px-6 lg:py-10">
+      <div className="mx-auto w-full max-w-2xl space-y-4 break-keep">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-xl font-semibold text-fg-primary">글 상세</h1>
           <Link
             href="/feed"
-            className="text-sm font-medium text-fg-secondary underline hover:text-fg-primary"
+            className="text-sm font-medium text-fg-secondary transition-colors hover:text-fg-primary"
           >
-            피드로
+            ← 피드로
           </Link>
         </div>
 
@@ -481,208 +401,127 @@ export default function PostDetailPage({
             {loadError && <p className="text-sm text-danger">{loadError}</p>}
 
             {postLoading ? (
-              <p className="text-sm text-fg-secondary">
-                불러오는 중...
-              </p>
+              /* 스켈레톤 — 글 카드 + 댓글 2줄 */
+              <>
+                <section className="rounded-3xl border border-border bg-card p-5 sm:p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 animate-pulse rounded-full bg-surface" />
+                    <div className="space-y-2">
+                      <div className="h-3.5 w-24 animate-pulse rounded bg-surface" />
+                      <div className="h-3 w-14 animate-pulse rounded bg-surface" />
+                    </div>
+                  </div>
+                  <div className="mt-5 space-y-2">
+                    <div className="h-4 w-full animate-pulse rounded bg-surface" />
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-surface" />
+                  </div>
+                  <div className="mt-5 h-6 w-48 animate-pulse rounded-full bg-surface" />
+                </section>
+                <section className="divide-y divide-border rounded-3xl border border-border bg-card">
+                  {[0, 1].map((i) => (
+                    <div key={i} className="flex gap-3 px-5 py-4 sm:px-6">
+                      <div className="h-8 w-8 animate-pulse rounded-full bg-surface" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 w-20 animate-pulse rounded bg-surface" />
+                        <div className="h-3.5 w-3/4 animate-pulse rounded bg-surface" />
+                      </div>
+                    </div>
+                  ))}
+                </section>
+              </>
             ) : !post ? (
-              <p className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-fg-secondary">
-                글을 찾을 수 없습니다
-              </p>
+              <section className="rounded-3xl border border-border bg-card p-8 text-center">
+                <p className="text-sm font-medium text-fg-primary">
+                  글을 찾을 수 없습니다
+                </p>
+                <p className="mt-1 text-xs text-fg-muted">
+                  삭제되었거나 잘못된 주소입니다
+                </p>
+                <Link
+                  href="/feed"
+                  className="mt-4 inline-flex h-10 items-center justify-center rounded-full border border-border px-5 text-sm font-medium text-fg-secondary transition-colors hover:bg-surface"
+                >
+                  피드로 가기
+                </Link>
+              </section>
             ) : (
               <>
-                {/* 글 상세 */}
-                <section className="rounded-3xl border border-border bg-card p-6">
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/profile/${post.author_id}`}
-                      className="flex items-center gap-2 hover:underline"
-                    >
-                      {post.author_icon && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={post.author_icon}
-                          alt=""
-                          className="h-6 w-6 rounded-full object-cover"
+                <PostCard
+                  post={post}
+                  original={original}
+                  userId={user.id}
+                  reactionError={reactionError}
+                  onReactionChange={handleReactionChange}
+                  onReactionError={setReactionError}
+                  onRepost={() => setRepostTarget(post)}
+                  onDelete={() => {
+                    setDeleteError(null);
+                    setDeleteTarget(post.id);
+                  }}
+                />
+
+                {/* 댓글 — 목록 + 작성 */}
+                <section className="overflow-hidden rounded-3xl border border-border bg-card">
+                  <h2 className="px-5 py-4 text-sm font-medium text-fg-secondary sm:px-6">
+                    댓글
+                    <span className="ml-1.5 tabular-nums text-fg-muted">
+                      {comments.length}
+                    </span>
+                  </h2>
+
+                  {commentsLoading ? (
+                    <div className="space-y-2 border-t border-border px-5 py-4 sm:px-6">
+                      <div className="h-3 w-20 animate-pulse rounded bg-surface" />
+                      <div className="h-3.5 w-3/4 animate-pulse rounded bg-surface" />
+                    </div>
+                  ) : tree.length === 0 ? (
+                    <div className="border-t border-border p-8 text-center">
+                      <p className="text-sm font-medium text-fg-primary">
+                        아직 댓글이 없습니다
+                      </p>
+                      <p className="mt-1 text-xs text-fg-muted">
+                        첫 댓글을 남겨보세요
+                      </p>
+                    </div>
+                  ) : (
+                    <ul className="divide-y divide-border border-t border-border">
+                      {tree.map((node) => (
+                        <CommentItem
+                          key={node.id}
+                          node={node}
+                          userId={user.id}
+                          postAuthorId={post.author_id}
+                          onReply={() => toggleReply(node.id)}
+                          onDelete={setDeleteTarget}
+                          replyForm={
+                            replyTarget === node.id && (
+                              <CommentForm
+                                value={replyBody}
+                                onChange={setReplyBody}
+                                onSubmit={() => handleSubmitReply(node.id)}
+                                onCancel={() => toggleReply(node.id)}
+                                submitting={replySubmitting}
+                                error={replySubmitError}
+                                placeholder="답글을 입력하세요"
+                                compact
+                              />
+                            )
+                          }
                         />
-                      )}
-                      <span className="text-sm font-medium text-fg-primary">
-                        {post.author_nickname ?? "알 수 없음"}
-                      </span>
-                    </Link>
-                    <span className="text-xs text-fg-muted">
-                      · {relativeTime(post.created_at)}
-                    </span>
-                  </div>
-                  <p className="mt-3 whitespace-pre-wrap text-sm text-fg-primary">
-                    {post.content}
-                  </p>
-                  {post.repost_of && <QuotedPostCard original={original} />}
-                  <div className="mt-4 flex items-center gap-4">
-                    <ReactionButtons
-                      postId={post.id}
-                      userId={user.id}
-                      state={{
-                        likeCount: post.like_count,
-                        dislikeCount: post.dislike_count,
-                        myReaction: post.my_reaction,
-                      }}
-                      onChange={handleReactionChange}
-                      onError={setReactionError}
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="border-t border-border p-5 sm:p-6">
+                    <CommentForm
+                      value={commentBody}
+                      onChange={setCommentBody}
+                      onSubmit={handleSubmitComment}
+                      submitting={commentSubmitting}
+                      error={commentSubmitError}
+                      placeholder="댓글을 입력하세요"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setRepostTarget(post)}
-                      className="text-xs font-medium text-fg-muted hover:text-fg-secondary"
-                    >
-                      리포스트
-                    </button>
-                    <span className="text-xs text-fg-muted">
-                      댓글 {post.comment_count}
-                    </span>
-                    {user.id === post.author_id && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDeleteError(null);
-                          setDeleteTarget(post.id);
-                        }}
-                        className="ml-auto text-xs font-medium text-fg-muted hover:text-danger"
-                      >
-                        삭제
-                      </button>
-                    )}
                   </div>
-                  {reactionError && (
-                    <p className="mt-2 text-sm text-danger">{reactionError}</p>
-                  )}
-                </section>
-
-                {/* 댓글 목록 */}
-                {commentsLoading ? (
-                  <p className="text-sm text-fg-secondary">
-                    댓글 불러오는 중...
-                  </p>
-                ) : tree.length === 0 ? (
-                  <p className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-fg-secondary">
-                    첫 댓글을 남겨보세요
-                  </p>
-                ) : (
-                  <ul className="divide-y divide-border rounded-3xl border border-border bg-card">
-                    {tree.map((node) => (
-                      <li key={node.id} className="px-6 py-4">
-                        <CommentBody comment={node} />
-                        <div className="mt-2 flex gap-3 text-xs text-fg-muted">
-                          <button
-                            type="button"
-                            onClick={() => toggleReply(node.id)}
-                            className="font-medium hover:text-fg-secondary"
-                          >
-                            답글
-                          </button>
-                          {user.id === node.author_id && (
-                            <button
-                              type="button"
-                              onClick={() => setDeleteTarget(node.id)}
-                              className="font-medium hover:text-danger"
-                            >
-                              삭제
-                            </button>
-                          )}
-                        </div>
-
-                        {replyTarget === node.id && (
-                          <div className="mt-3 space-y-2 rounded-2xl border border-border bg-surface p-3">
-                            <textarea
-                              value={replyBody}
-                              onChange={(e) => setReplyBody(e.target.value)}
-                              placeholder="답글을 입력하세요"
-                              rows={2}
-                              maxLength={MAX_COMMENT_LENGTH}
-                              className="w-full resize-none rounded-xl border border-border bg-card p-3 text-sm text-fg-primary outline-none focus:border-brand"
-                            />
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-fg-muted">
-                                {replyBody.trim().length}/{MAX_COMMENT_LENGTH}
-                              </span>
-                              <div className="flex gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => toggleReply(node.id)}
-                                  className="rounded-full px-3 py-1 text-xs font-medium text-fg-secondary hover:bg-border"
-                                >
-                                  취소
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleSubmitReply(node.id)}
-                                  disabled={replySubmitting}
-                                  className="rounded-full bg-brand px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-brand-pressed disabled:opacity-50"
-                                >
-                                  {replySubmitting ? "등록 중..." : "등록"}
-                                </button>
-                              </div>
-                            </div>
-                            {replySubmitError && (
-                              <p className="text-xs text-danger">
-                                {replySubmitError}
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {node.replies.length > 0 && (
-                          <ul className="mt-3 ml-6 space-y-3 border-l border-border pl-4">
-                            {node.replies.map((reply) => (
-                              <li key={reply.id}>
-                                <CommentBody comment={reply} />
-                                {user.id === reply.author_id && (
-                                  <div className="mt-2 flex gap-3 text-xs text-fg-muted">
-                                    <button
-                                      type="button"
-                                      onClick={() => setDeleteTarget(reply.id)}
-                                      className="font-medium hover:text-danger"
-                                    >
-                                      삭제
-                                    </button>
-                                  </div>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {/* 댓글 작성 */}
-                <section className="rounded-3xl border border-border bg-card p-6">
-                  <textarea
-                    value={commentBody}
-                    onChange={(e) => setCommentBody(e.target.value)}
-                    placeholder="댓글을 입력하세요"
-                    rows={3}
-                    maxLength={MAX_COMMENT_LENGTH}
-                    className="w-full resize-none rounded-2xl border border-border bg-surface p-4 text-sm text-fg-primary outline-none focus:border-brand"
-                  />
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="text-xs text-fg-muted">
-                      {commentBody.trim().length}/{MAX_COMMENT_LENGTH}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleSubmitComment}
-                      disabled={commentSubmitting}
-                      className="flex h-9 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed disabled:opacity-50"
-                    >
-                      {commentSubmitting ? "등록 중..." : "등록"}
-                    </button>
-                  </div>
-                  {commentSubmitError && (
-                    <p className="mt-2 text-sm text-danger">
-                      {commentSubmitError}
-                    </p>
-                  )}
                 </section>
               </>
             )}
