@@ -391,7 +391,7 @@ export default function StockTradePage({
 
       {/* 토스트 */}
       {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 rounded-full bg-success-tint px-4 py-2 text-sm font-medium text-success">
           {toast}
         </div>
       )}

@@ -6,7 +6,11 @@ import { supabase } from "@/lib/supabase";
 import { INDEX_CACHE_TTL_SEC, SUPPORTED_MARKETS } from "@/lib/constants";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
 import type { DomesticIndex, DomesticIndicesResponse } from "@/app/api/indices/route";
-import StockList, { type Stock, type QuoteMap } from "@/components/home/StockList";
+import StockList, {
+  fetchQuotes,
+  type Stock,
+  type QuoteMap,
+} from "@/components/home/StockList";
 import MyInvestmentCard from "@/components/home/MyInvestmentCard";
 import RankingPreview from "@/components/home/RankingPreview";
 import IndexCardGrid, {
@@ -99,19 +103,8 @@ export default function Home() {
       setLoadingStocks(false);
 
       if (data && data.length > 0) {
-        const { data: quoteRows } = await supabase
-          .from("price_quotes")
-          .select("stock_id, price")
-          .in(
-            "stock_id",
-            data.map((s) => s.id)
-          );
-
+        const map = await fetchQuotes(data.map((s) => s.id));
         if (!active) return;
-        const map: QuoteMap = {};
-        for (const q of quoteRows ?? []) {
-          map[q.stock_id] = q.price;
-        }
         setQuotes(map);
       }
     }
@@ -201,7 +194,7 @@ export default function Home() {
             <span
               className={`rounded-full px-3 py-1 text-xs font-medium ${
                 marketStatus.open
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  ? "bg-success-tint text-success"
                   : "bg-surface text-fg-secondary"
               }`}
             >

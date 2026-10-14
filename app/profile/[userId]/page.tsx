@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
 import FollowButton from "@/components/FollowButton";
+import ProfileHeader from "@/components/ProfileHeader";
 
 type Profile = {
   id: string;
@@ -174,11 +175,9 @@ export default function PublicProfilePage({
   };
 
   return (
-    <div className="flex flex-1 flex-col bg-page px-6 py-10">
-      <div className="mx-auto w-full max-w-2xl space-y-6">
-        <h1 className="text-xl font-semibold text-fg-primary">
-          프로필
-        </h1>
+    <div className="flex flex-1 flex-col bg-page px-4 py-6 sm:px-6 lg:py-10">
+      <div className="mx-auto w-full max-w-2xl space-y-6 break-keep">
+        <h1 className="text-xl font-semibold text-fg-primary">프로필</h1>
 
         {!userLoading && !user && (
           <section className="rounded-3xl border border-border bg-card p-6 text-center">
@@ -196,112 +195,155 @@ export default function PublicProfilePage({
 
         {!userLoading && user && (
           <>
-            {loadError && <p className="text-sm text-red-500">{loadError}</p>}
+            {loadError && <p className="text-sm text-danger">{loadError}</p>}
 
             {loading ? (
-              <p className="text-sm text-fg-secondary">
-                불러오는 중...
-              </p>
+              /* 스켈레톤 — 헤더 카드 + 글 3줄 */
+              <>
+                <section className="rounded-3xl border border-border bg-card p-5 sm:p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="h-16 w-16 animate-pulse rounded-full bg-surface" />
+                    <div className="h-5 w-28 animate-pulse rounded bg-surface" />
+                  </div>
+                  <div className="mt-4 h-3.5 w-48 max-w-full animate-pulse rounded bg-surface" />
+                  <div className="mt-5 grid grid-cols-3 border-t border-border pt-4">
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} className="mx-auto h-10 w-14 animate-pulse rounded bg-surface" />
+                    ))}
+                  </div>
+                </section>
+                <section className="divide-y divide-border rounded-3xl border border-border bg-card">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="space-y-2 px-5 py-4 sm:px-6">
+                      <div className="h-3 w-12 animate-pulse rounded bg-surface" />
+                      <div className="h-3.5 w-full animate-pulse rounded bg-surface" />
+                      <div className="h-3 w-32 animate-pulse rounded bg-surface" />
+                    </div>
+                  ))}
+                </section>
+              </>
             ) : !profile ? (
-              <p className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-fg-secondary">
-                사용자를 찾을 수 없습니다
-              </p>
+              <section className="rounded-3xl border border-border bg-card p-8 text-center">
+                <p className="text-sm font-medium text-fg-primary">
+                  사용자를 찾을 수 없습니다
+                </p>
+                <p className="mt-1 text-xs text-fg-muted">
+                  주소가 잘못되었거나 없는 사용자입니다
+                </p>
+                <Link
+                  href="/feed"
+                  className="mt-4 inline-flex h-10 items-center justify-center rounded-full border border-border px-5 text-sm font-medium text-fg-secondary transition-colors hover:bg-surface"
+                >
+                  피드로 가기
+                </Link>
+              </section>
             ) : (
               <>
-                {/* 프로필 헤더 */}
-                <section className="rounded-3xl border border-border bg-card p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      {profile.icon ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={profile.icon}
-                          alt=""
-                          className="h-16 w-16 rounded-full object-cover"
-                        />
+                {/* 프로필 헤더 — 마이페이지 미리보기와 같은 컴포넌트 */}
+                <section className="rounded-3xl border border-border bg-card p-5 sm:p-6">
+                  <ProfileHeader
+                    icon={profile.icon}
+                    nickname={profile.nickname}
+                    bio={profile.bio}
+                    isMe={isOwnProfile}
+                    emptyBio={
+                      isOwnProfile
+                        ? "아직 소개가 없어요. 프로필 편집에서 추가할 수 있어요"
+                        : undefined
+                    }
+                    action={
+                      isOwnProfile ? (
+                        <Link
+                          href="/mypage"
+                          className="flex h-9 items-center justify-center rounded-full border border-border px-4 text-sm font-medium text-fg-secondary transition-colors hover:bg-surface"
+                        >
+                          프로필 편집
+                        </Link>
                       ) : (
-                        <div className="h-16 w-16 rounded-full bg-surface" />
-                      )}
-                      <div>
-                        <p className="text-lg font-semibold text-fg-primary">
-                          {profile.nickname}
-                        </p>
-                        {profile.bio && (
-                          <p className="mt-1 text-sm text-fg-secondary">
-                            {profile.bio}
-                          </p>
-                        )}
+                        <FollowButton
+                          followerId={user.id}
+                          targetUserId={userId}
+                          isFollowing={isFollowing}
+                          onChange={handleFollowChange}
+                          onError={setFollowError}
+                        />
+                      )
+                    }
+                  />
+
+                  <dl className="mt-5 grid grid-cols-3 divide-x divide-border border-t border-border pt-4 text-center">
+                    {(
+                      [
+                        ["작성한 글", posts.length],
+                        ["팔로워", followerCount],
+                        ["팔로잉", followingCount],
+                      ] as const
+                    ).map(([label, value]) => (
+                      <div key={label} className="flex flex-col-reverse gap-0.5">
+                        <dt className="text-xs text-fg-secondary">{label}</dt>
+                        <dd className="text-lg font-semibold tabular-nums text-fg-primary">
+                          {value}
+                        </dd>
                       </div>
-                    </div>
-
-                    {isOwnProfile ? (
-                      <Link
-                        href="/mypage"
-                        className="flex h-9 items-center justify-center rounded-full border border-border px-5 text-sm font-medium text-fg-secondary transition-colors hover:bg-surface"
-                      >
-                        프로필 편집
-                      </Link>
-                    ) : (
-                      <FollowButton
-                        followerId={user.id}
-                        targetUserId={userId}
-                        isFollowing={isFollowing}
-                        onChange={handleFollowChange}
-                        onError={setFollowError}
-                      />
-                    )}
-                  </div>
-
-                  <div className="mt-4 flex items-center gap-4 text-sm text-fg-secondary">
-                    <span>
-                      팔로워{" "}
-                      <span className="font-medium text-fg-primary">
-                        {followerCount}
-                      </span>
-                    </span>
-                    <span>
-                      팔로잉{" "}
-                      <span className="font-medium text-fg-primary">
-                        {followingCount}
-                      </span>
-                    </span>
-                  </div>
+                    ))}
+                  </dl>
 
                   {followError && (
-                    <p className="mt-2 text-sm text-red-500">{followError}</p>
+                    <p className="mt-3 text-sm text-danger">{followError}</p>
                   )}
                 </section>
 
                 {/* 작성 글 목록 */}
-                <section className="space-y-3">
-                  <h2 className="text-sm font-medium text-fg-secondary">
+                <section className="overflow-hidden rounded-3xl border border-border bg-card">
+                  <h2 className="px-5 py-4 text-sm font-medium text-fg-secondary sm:px-6">
                     작성한 글
+                    <span className="ml-1.5 tabular-nums text-fg-muted">
+                      {posts.length}
+                    </span>
                   </h2>
 
                   {posts.length === 0 ? (
-                    <p className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-fg-secondary">
-                      작성한 글이 없습니다
-                    </p>
+                    <div className="border-t border-border p-8 text-center">
+                      <p className="text-sm font-medium text-fg-primary">
+                        아직 작성한 글이 없습니다
+                      </p>
+                      {isOwnProfile ? (
+                        <>
+                          <p className="mt-1 text-xs text-fg-muted">
+                            피드에서 첫 글을 남겨보세요
+                          </p>
+                          <Link
+                            href="/feed"
+                            className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-white transition-colors hover:bg-brand-pressed"
+                          >
+                            피드로 가기
+                          </Link>
+                        </>
+                      ) : (
+                        <p className="mt-1 text-xs text-fg-muted">
+                          글을 쓰면 여기에 표시됩니다
+                        </p>
+                      )}
+                    </div>
                   ) : (
-                    <ul className="divide-y divide-border rounded-3xl border border-border bg-card">
+                    <ul className="divide-y divide-border border-t border-border">
                       {posts.map((post) => (
-                        <li
-                          key={post.id}
-                          className="px-6 py-4 transition-colors hover:bg-surface"
-                        >
-                          <Link href={`/feed/${post.id}`} className="block">
+                        <li key={post.id}>
+                          <Link
+                            href={`/feed/${post.id}`}
+                            className="block px-5 py-4 transition-colors hover:bg-surface sm:px-6"
+                          >
                             <span className="text-xs text-fg-muted">
                               {relativeTime(post.created_at)}
                             </span>
-                            <p className="mt-1 whitespace-pre-wrap text-sm text-fg-primary">
+                            <p className="mt-1 line-clamp-4 whitespace-pre-wrap break-words text-sm leading-relaxed text-fg-primary">
                               {post.content}
                             </p>
-                            <div className="mt-3 flex items-center gap-4 text-xs text-fg-muted">
-                              <span>
-                                좋아요 {post.like_count} · 비추 {post.dislike_count}
-                              </span>
+                            <p className="mt-3 flex items-center gap-3 text-xs tabular-nums text-fg-muted">
+                              <span>좋아요 {post.like_count}</span>
+                              <span>비추 {post.dislike_count}</span>
                               <span>댓글 {post.comment_count}</span>
-                            </div>
+                            </p>
                           </Link>
                         </li>
                       ))}

@@ -10,7 +10,7 @@
 /stocks/[id]       종목 상세 · 차트 · 주문 · 커뮤니티
 /feed              소셜 피드 (로그인 필요)
 /feed/[postId]     글 상세 · 댓글 · 본인 글 삭제
-/ranking           시즌 수익률 랭킹
+/ranking           누적 수익률 랭킹
 /account           내 계좌 (자산 · 보유 종목 · 거래 내역)
 /mypage            마이페이지 (닉네임 · bio · 아이콘 편집)
 /profile/[userId]  공개 프로필 · 팔로우

@@ -55,12 +55,12 @@ export default function ConfirmModal({
         </div>
 
         {side === "sell" && quantity > holdingQty && (
-          <p className="mt-4 text-sm text-red-500">
+          <p className="mt-4 text-sm text-danger">
             보유 수량({holdingQty}주)을 초과했습니다
           </p>
         )}
 
-        {orderError && <p className="mt-4 text-sm text-red-500">{orderError}</p>}
+        {orderError && <p className="mt-4 text-sm text-danger">{orderError}</p>}
 
         <div className="mt-6 flex gap-3">
           <button
