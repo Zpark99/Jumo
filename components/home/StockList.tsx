@@ -13,7 +13,7 @@ export type Stock = {
   currency: string;
 };
 
-type Quote = { price: number; change_rate: number | null };
+type Quote = { price: number; change_rate: number | null; fetched_at: string };
 
 export type QuoteMap = Record<string, Quote | undefined>;
 
@@ -21,14 +21,30 @@ export type QuoteMap = Record<string, Quote | undefined>;
 export async function fetchQuotes(stockIds: string[]): Promise<QuoteMap> {
   const { data } = await supabase
     .from("price_quotes")
-    .select("stock_id, price, change_rate")
+    .select("stock_id, price, change_rate, fetched_at")
     .in("stock_id", stockIds);
 
   const map: QuoteMap = {};
   for (const q of data ?? []) {
-    map[q.stock_id] = { price: q.price, change_rate: q.change_rate };
+    map[q.stock_id] = {
+      price: q.price,
+      change_rate: q.change_rate,
+      fetched_at: q.fetched_at,
+    };
   }
   return map;
+}
+
+// KST 기준 "YYYY-MM-DD" (랭킹 formatUpdatedAt과 같은 방식)
+function kstDate(date: Date) {
+  return date.toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).slice(0, 10);
+}
+
+// 시세가 오늘(KST) 것이 아니면 "MM/DD 기준" — 장 마감 후 일괄 갱신이 빠진 날도 드러나게 (#165)
+function staleLabel(fetchedAt: string) {
+  const day = kstDate(new Date(fetchedAt));
+  if (day === kstDate(new Date())) return null;
+  return `${day.slice(5, 7)}/${day.slice(8, 10)} 기준`;
 }
 
 function formatPrice(price: number, currency: string) {
@@ -61,6 +77,7 @@ export default function StockList({
       {stocks.map((s) => {
         const name = s.name_ko ?? s.name_en ?? s.id;
         const quote = quotes[s.id];
+        const stale = quote ? staleLabel(quote.fetched_at) : null;
         const isWatched = !!watchlist[s.id];
 
         return (
@@ -99,6 +116,11 @@ export default function StockList({
               </div>
               <div className="shrink-0 text-right">
                 <p className="text-sm font-medium tabular-nums text-fg-primary">
+                  {stale && (
+                    <span className="mr-1.5 text-[11px] font-normal text-fg-muted">
+                      {stale}
+                    </span>
+                  )}
                   {quote ? formatPrice(quote.price, s.currency) : "-"}
                 </p>
                 {quote && quote.change_rate !== null && (
