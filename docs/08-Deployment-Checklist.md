@@ -3,8 +3,10 @@
 ## 환경변수
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` — 서버 전용(KIS 토큰·시세 저장). 클라이언트 노출 금지
 - `KIS_APP_KEY` / `KIS_APP_SECRET`
 - `KIS_BASE_URL` — **실전 도메인**(`openapi.koreainvestment.com:9443`). VTS(모의)로 두면 시세·캔들·호가가 `EGW00103`으로 거부됨
+- `CRON_SECRET` — Vercel Cron 인증(`/api/cron/refresh-quotes`, 평일 16시대 KST 목록 시세 일괄 갱신, #165). **Production**에 등록. 없으면 cron이 돌아도 401로 아무것도 안 함
 - (실제 변수명은 `.env.example` 기준)
 
 ## 운영 설정 (코드 밖에 사는 것 — "로컬 OK = 운영 OK"가 아니다)

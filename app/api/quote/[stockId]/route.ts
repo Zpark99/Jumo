@@ -2,36 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import type { NextRequest } from "next/server";
 
 import { QUOTE_CACHE_TTL_MS } from "@/lib/constants";
-import { getKisBaseUrl, getKisToken } from "@/lib/kis";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-
-type KisQuoteResponse = {
-  rt_cd: string;
-  output?: {
-    stck_prpr?: string;
-    stck_sdpr?: string;
-    prdy_ctrt?: string;
-  };
-};
-
-async function fetchKisQuote(code: string, token: string): Promise<KisQuoteResponse> {
-  const baseUrl = getKisBaseUrl();
-  const url = new URL(
-    `${baseUrl}/uapi/domestic-stock/v1/quotations/inquire-price`
-  );
-  url.searchParams.set("FID_COND_MRKT_DIV_CODE", "J");
-  url.searchParams.set("FID_INPUT_ISCD", code);
-
-  const res = await fetch(url.toString(), {
-    headers: {
-      authorization: `Bearer ${token}`,
-      appkey: process.env.KIS_APP_KEY!,
-      appsecret: process.env.KIS_APP_SECRET!,
-      tr_id: "FHKST01010100",
-    },
-  });
-  return res.json();
-}
+import { getKisToken } from "@/lib/kis";
+import { fetchAndStoreQuote } from "@/lib/quotes";
 
 export async function GET(
   request: NextRequest,
@@ -64,49 +36,16 @@ export async function GET(
     // 캐시 만료 → KIS 재호출하여 price_quotes 갱신 (V3_STALE_QUOTE 방지)
   }
 
-  // 캐시 미스 시 KIS API 직접 호출
-  // DB 조회는 "KR-005930" 그대로, KIS 호출에만 접두사 제거
-  const code = stockId.replace(/^(KR|US)-/, "");
-
+  // 캐시 미스 시 KIS API 직접 호출 → price_quotes 저장 (lib/quotes, #165)
   try {
     const token = await getKisToken();
-    const kisData = await fetchKisQuote(code, token);
+    const { quote, saveError } = await fetchAndStoreQuote(stockId, token);
 
-    if (kisData.rt_cd !== "0") {
+    if (!quote) {
       return Response.json({ error: "QUOTE_NOT_FOUND" }, { status: 404 });
     }
-
-    const output = kisData.output;
-    const price = Number(output?.stck_prpr);
-    const prevClose = Number(output?.stck_sdpr);
-    const changeRate = Number(output?.prdy_ctrt);
-
-    // 0 이하는 유효한 시세가 아니다. 해외 종목 코드를 국내 엔드포인트에 넘기면
-    // rt_cd=0에 현재가 0이 돌아오는데(#120), 이를 저장하면 execute_order가
-    // 0원에 체결해버린다. 저장도 반환도 하지 않는다.
-    if (!Number.isFinite(price) || price <= 0) {
-      return Response.json({ error: "QUOTE_NOT_FOUND" }, { status: 404 });
-    }
-
-    const fetched_at = new Date().toISOString();
-    const quote = {
-      stock_id: stockId,
-      price,
-      prev_close: Number.isFinite(prevClose) ? prevClose : null,
-      change_rate: Number.isFinite(changeRate) ? changeRate : null,
-      fetched_at,
-    };
-
-    // execute_order RPC가 price_quotes를 읽으므로 반드시 저장.
-    // 시세 기록은 service_role 전용(#137) — anon 키로 열어두면 누구나 임의 시세를 넣을 수 있다.
-    const { error: upsertError } = await supabaseAdmin.rpc("upsert_price_quote", {
-      p_stock_id: stockId,
-      p_price: quote.price,
-      p_prev_close: quote.prev_close,
-      p_change_rate: quote.change_rate,
-    });
-    if (upsertError) {
-      console.error("[quote] price_quotes upsert 실패:", upsertError.message);
+    if (saveError) {
+      console.error("[quote] price_quotes upsert 실패:", saveError);
     }
 
     return Response.json(quote);
