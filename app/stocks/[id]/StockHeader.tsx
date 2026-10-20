@@ -4,6 +4,7 @@ type Props = {
   stockName: string;
   ticker: string;
   quote: Quote | null;
+  quoteLoading: boolean;
   currency: string;
   quoteError: string | null;
 };
@@ -13,6 +14,7 @@ export default function StockHeader({
   stockName,
   ticker,
   quote,
+  quoteLoading,
   currency,
   quoteError,
 }: Props) {
@@ -42,9 +44,13 @@ export default function StockHeader({
       </div>
 
       <div className="mt-6 flex items-baseline gap-3">
-        <p className="text-4xl font-semibold text-fg-primary">
-          {quote ? formatPrice(quote.price, currency) : "-"}
-        </p>
+        {quoteLoading ? (
+          <div className="h-10 w-44 animate-pulse rounded-lg bg-surface" />
+        ) : (
+          <p className="text-4xl font-semibold text-fg-primary">
+            {quote ? formatPrice(quote.price, currency) : "-"}
+          </p>
+        )}
         {quote && (diff !== null || rate !== null) && (
           <span className={`text-sm font-medium ${changeColor}`}>
             {diff !== null && `${sign}${formatPrice(diff, currency)}`}

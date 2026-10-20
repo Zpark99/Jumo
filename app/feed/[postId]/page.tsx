@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
+import { UUID_RE } from "@/lib/constants";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
 import { ReactionState } from "@/components/ReactionButtons";
 import { QuotedPost } from "@/components/QuotedPostCard";
@@ -139,6 +140,14 @@ export default function PostDetailPage({
       setPostLoading(true);
       setCommentsLoading(true);
       setLoadError(null);
+
+      // UUID 형식이 아니면 DB 조회 없이 "글을 찾을 수 없음" 빈 상태로 (#173)
+      if (!UUID_RE.test(postId)) {
+        setPost(null);
+        setPostLoading(false);
+        setCommentsLoading(false);
+        return;
+      }
 
       const { postResult, commentsResult, reactionResult } =
         await loadPostAndComments(postId, userId);

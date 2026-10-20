@@ -9,6 +9,7 @@ export type MarketIndex = {
   changePct: number | null; // 전일 대비 %
   spark?: number[]; // 미니 스파크라인용 포인트. 실데이터 카드는 없음(지수 일봉 API 별건)
   isExample?: boolean; // 목업 카드 → "예시" 배지
+  loading?: boolean; // 첫 조회 전 → 값·등락 자리 스켈레톤 (#172)
 };
 
 // 목업 지수 — 2026 기준 도메인상 말 되는 수치를 결정적으로 생성(렌더마다 안 흔들림).
@@ -85,15 +86,25 @@ function IndexCard({ index }: { index: MarketIndex }) {
         <p className="text-xs font-medium text-fg-secondary">{index.name}</p>
         {index.isExample && <ExampleBadge />}
       </div>
-      <p className="mt-1 text-lg font-semibold text-fg-primary">
-        {index.value !== null ? formatNumber(index.value, index.decimals) : "-"}
-      </p>
-      {/* 실패(value null)는 등락도 "-". 목업 값을 실데이터처럼 보여주지 않는다 */}
-      <p className={`text-xs font-medium ${index.value !== null ? color : "text-price-flat"}`}>
-        {index.value !== null && index.change !== null && index.changePct !== null
-          ? `${sign}${formatNumber(index.change, index.decimals)} (${sign}${index.changePct.toFixed(2)}%)`
-          : "-"}
-      </p>
+      {index.loading ? (
+        /* 카드 배경이 bg-surface라 스켈레톤은 bg-card로 대비 */
+        <>
+          <div className="mt-1 h-7 w-24 animate-pulse rounded bg-card" />
+          <div className="mt-1 h-4 w-28 animate-pulse rounded bg-card" />
+        </>
+      ) : (
+        <>
+          <p className="mt-1 text-lg font-semibold text-fg-primary">
+            {index.value !== null ? formatNumber(index.value, index.decimals) : "-"}
+          </p>
+          {/* 실패(value null)는 등락도 "-". 목업 값을 실데이터처럼 보여주지 않는다 */}
+          <p className={`text-xs font-medium ${index.value !== null ? color : "text-price-flat"}`}>
+            {index.value !== null && index.change !== null && index.changePct !== null
+              ? `${sign}${formatNumber(index.change, index.decimals)} (${sign}${index.changePct.toFixed(2)}%)`
+              : "-"}
+          </p>
+        </>
+      )}
       {/* 스파크라인 없는 카드도 같은 높이를 차지해 그리드가 안 흔들리게 */}
       <div className="mt-2 h-8">
         {index.spark && <Sparkline points={index.spark} change={change} />}
