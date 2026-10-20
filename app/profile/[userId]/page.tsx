@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 
 import { supabase } from "@/lib/supabase";
+import { UUID_RE } from "@/lib/constants";
 import { useSupabaseUser } from "@/lib/useSupabaseUser";
 import FollowButton from "@/components/FollowButton";
 import ProfileHeader from "@/components/ProfileHeader";
@@ -125,6 +126,13 @@ export default function PublicProfilePage({
     async function load() {
       setLoading(true);
       setLoadError(null);
+
+      // UUID 형식이 아니면 DB 조회 없이 "사용자를 찾을 수 없음" 빈 상태로 (#173)
+      if (!UUID_RE.test(userId)) {
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
 
       const { profileResult, followerResult, followingResult, postsResult, isFollowingResult } =
         await loadProfileData(userId, viewerId);

@@ -41,7 +41,8 @@ export default function Home() {
   const { user, loading: userLoading } = useSupabaseUser();
 
   const [stocks, setStocks] = useState<Stock[]>([]);
-  const [quotes, setQuotes] = useState<QuoteMap>({});
+  // null = 조회 전(스켈레톤). 조회 후 행이 없는 종목은 "-" (#172)
+  const [quotes, setQuotes] = useState<QuoteMap | null>(null);
   const [loadingStocks, setLoadingStocks] = useState(true);
 
   const [accountId, setAccountId] = useState<string | null>(null);
@@ -50,8 +51,9 @@ export default function Home() {
 
   const marketStatus = useMemo(() => getMarketStatus(), []);
 
-  const [domesticIndices, setDomesticIndices] = useState<DomesticIndex[]>(
-    EMPTY_DOMESTIC_INDICES
+  // null = 첫 조회 전(스켈레톤). 실패는 EMPTY로 "-" (#172)
+  const [domesticIndices, setDomesticIndices] = useState<DomesticIndex[] | null>(
+    null
   );
 
   // 국내지수(코스피·코스닥) 실데이터. 서버 캐시 TTL과 같은 주기로 폴링 — 더 자주
@@ -84,7 +86,11 @@ export default function Home() {
 
   // 실데이터 카드(스파크라인 없음) 앞, "예시" 목업 카드 뒤
   const indices: MarketIndex[] = [
-    ...domesticIndices.map((i) => ({ ...i, decimals: 2 })),
+    ...(domesticIndices ?? EMPTY_DOMESTIC_INDICES).map((i) => ({
+      ...i,
+      decimals: 2,
+      loading: domesticIndices === null,
+    })),
     ...buildMockIndices(),
   ];
 
@@ -106,6 +112,8 @@ export default function Home() {
         const map = await fetchQuotes(data.map((s) => s.id));
         if (!active) return;
         setQuotes(map);
+      } else {
+        setQuotes({});
       }
     }
 
