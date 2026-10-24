@@ -81,7 +81,7 @@ export default function StockTabs({
             key={key}
             type="button"
             onClick={() => onTabChange(key)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+            className={`rounded-full px-3 py-2 text-xs font-medium transition-colors ${
               activeTab === key
                 ? "bg-brand text-white"
                 : "bg-surface text-fg-secondary hover:bg-border"

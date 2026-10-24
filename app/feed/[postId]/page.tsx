@@ -385,7 +385,7 @@ export default function PostDetailPage({
           <h1 className="text-xl font-semibold text-fg-primary">글 상세</h1>
           <Link
             href="/feed"
-            className="text-sm font-medium text-fg-secondary transition-colors hover:text-fg-primary"
+            className="tap text-sm font-medium text-fg-secondary transition-colors hover:text-fg-primary"
           >
             ← 피드로
           </Link>

@@ -97,7 +97,7 @@ export default function StockList({
                       onToggle(s.id);
                     }}
                     aria-label={isWatched ? "관심종목 제거" : "관심종목 추가"}
-                    className={`text-lg leading-none ${
+                    className={`tap text-lg leading-none ${
                       isWatched
                         ? "text-yellow-500"
                         : "text-fg-muted"

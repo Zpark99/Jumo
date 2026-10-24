@@ -36,8 +36,9 @@ export default function TopNav() {
   const links = user ? [...BASE_LINKS, ...AUTHED_LINKS] : BASE_LINKS;
   const close = () => setMenuOpen(false);
 
-  // 로그인/비로그인 variant의 액션 영역 (데스크탑·모바일 공용)
-  function AuthAction() {
+  // 로그인/비로그인 variant의 액션 영역 (데스크탑·모바일 공용).
+  // 컴포넌트가 아니라 평범한 함수 — 렌더마다 새 컴포넌트 타입이 생기면 리마운트된다
+  function renderAuthAction() {
     if (loading) return null;
     if (user) {
       return (
@@ -48,7 +49,7 @@ export default function TopNav() {
             // 이 기기만 로그아웃. 기본값(global)은 다른 기기·로컬 개발 세션까지 끊는다
             supabase.auth.signOut({ scope: "local" });
           }}
-          className={linkClass}
+          className={`tap ${linkClass}`}
         >
           로그아웃
         </button>
@@ -71,7 +72,7 @@ export default function TopNav() {
         <Link
           href="/"
           onClick={close}
-          className="text-lg font-bold text-brand"
+          className="tap text-lg font-bold text-brand"
         >
           주모
         </Link>
@@ -83,7 +84,7 @@ export default function TopNav() {
               {l.label}
             </Link>
           ))}
-          <AuthAction />
+          {renderAuthAction()}
         </div>
 
         {/* 모바일 햄버거 (lg 미만) */}
@@ -92,7 +93,7 @@ export default function TopNav() {
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="메뉴 열기"
           aria-expanded={menuOpen}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-fg-secondary hover:text-fg-primary lg:hidden"
+          className="tap flex h-9 w-9 items-center justify-center rounded-lg text-fg-secondary hover:text-fg-primary lg:hidden"
         >
           <span className="text-xl leading-none">{menuOpen ? "✕" : "☰"}</span>
         </button>
@@ -113,7 +114,7 @@ export default function TopNav() {
               </Link>
             ))}
             <div className="mt-2 px-2">
-              <AuthAction />
+              {renderAuthAction()}
             </div>
           </div>
         </div>

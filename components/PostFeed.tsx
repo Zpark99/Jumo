@@ -409,13 +409,13 @@ export default function PostFeed({
                   <button
                     type="button"
                     onClick={() => setRepostTarget(post)}
-                    className="text-xs font-medium text-fg-muted hover:text-fg-secondary"
+                    className="tap text-xs font-medium text-fg-muted hover:text-fg-secondary"
                   >
                     리포스트
                   </button>
                   <Link
                     href={`/feed/${post.id}`}
-                    className="text-xs text-fg-muted hover:text-fg-secondary"
+                    className="tap text-xs text-fg-muted hover:text-fg-secondary"
                   >
                     댓글 {post.comment_count}
                   </Link>

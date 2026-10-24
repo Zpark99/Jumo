@@ -200,7 +200,7 @@ export default function MyPage() {
                     </h2>
                     <Link
                       href={`/profile/${user.id}`}
-                      className="text-xs font-medium text-fg-muted transition-colors hover:text-fg-secondary"
+                      className="tap text-xs font-medium text-fg-muted transition-colors hover:text-fg-secondary"
                     >
                       공개 프로필 보기 →
                     </Link>

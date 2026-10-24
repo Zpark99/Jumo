@@ -43,7 +43,8 @@ export default function StockHeader({
         </span>
       </div>
 
-      <div className="mt-6 flex items-baseline gap-3">
+      {/* 좁은 폭에선 등락이 통째로 다음 줄로 (#174) */}
+      <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         {quoteLoading ? (
           <div className="h-10 w-44 animate-pulse rounded-lg bg-surface" />
         ) : (
@@ -52,7 +53,7 @@ export default function StockHeader({
           </p>
         )}
         {quote && (diff !== null || rate !== null) && (
-          <span className={`text-sm font-medium ${changeColor}`}>
+          <span className={`whitespace-nowrap text-sm font-medium ${changeColor}`}>
             {diff !== null && `${sign}${formatPrice(diff, currency)}`}
             {diff !== null && rate !== null && " "}
             {rate !== null && `(${sign}${rate.toFixed(2)}%)`}
