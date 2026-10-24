@@ -16,6 +16,10 @@
 --   - 정의자 뷰는 RLS를 타지 않으므로 뷰 자체 권한으로 접근을 제한한다:
 --     anon 전부 회수, authenticated는 SELECT만 (기본 grant로 열려 있던
 --     INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER도 회수).
+--   - Supabase Security Advisor는 이 뷰를 "Security Definer View"(error)로 표시한다.
+--     의도된 것이다: 접근은 위 grant(authenticated SELECT만)로 제한되고 노출 컬럼에
+--     잔고성 컬럼이 없다. posts_with_author·community_posts·feed_posts도 같은 방식이라
+--     이미 같은 항목으로 표시돼 있었다 (2026-10-24 운영 Advisor 확인, #180).
 
 create or replace view public.season_rankings
   with (security_invoker = false) as
