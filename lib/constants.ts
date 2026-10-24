@@ -12,3 +12,9 @@ export const INDEX_CACHE_TTL_SEC = 60;
 // 캐시될 위험도 있으므로 목록·검색에서 숨긴다.
 // KIS 해외 신청 + 해외 조회 경로 구현이 끝나면 "US"를 다시 넣으면 된다.
 export const SUPPORTED_MARKETS = ["KR"] as const;
+
+// 동적 라우트 파라미터(postId·userId)가 UUID 형식인지. 형식이 아니면 DB를 치지 않고
+// 빈 상태로 바로 간다 — postgres의 "invalid input syntax for type uuid" 문구가
+// 화면에 노출되는 걸 막는다 (#173).
+export const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

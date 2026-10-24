@@ -172,7 +172,7 @@ export default function CandleChart({ candles, currency }: Props) {
 
       {/* OHLC 레전드 (크로스헤어 추적) — 차트 위 오버레이 */}
       {legend && (
-        <div className="pointer-events-none absolute left-2 top-2 z-10 flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded-lg bg-surface/80 px-3 py-1.5 text-xs text-fg-secondary backdrop-blur">
+        <div className="pointer-events-none absolute left-2 right-12 top-2 z-10 flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded-lg bg-surface/80 px-3 py-1.5 text-xs text-fg-secondary backdrop-blur">
           <span className="font-medium text-fg-primary">{legend.time}</span>
           <span>시 {formatPrice(legend.open, currency)}</span>
           <span>고 {formatPrice(legend.high, currency)}</span>

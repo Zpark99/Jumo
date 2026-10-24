@@ -4,6 +4,7 @@ type Props = {
   stockName: string;
   ticker: string;
   quote: Quote | null;
+  quoteLoading: boolean;
   currency: string;
   quoteError: string | null;
 };
@@ -13,6 +14,7 @@ export default function StockHeader({
   stockName,
   ticker,
   quote,
+  quoteLoading,
   currency,
   quoteError,
 }: Props) {
@@ -41,12 +43,17 @@ export default function StockHeader({
         </span>
       </div>
 
-      <div className="mt-6 flex items-baseline gap-3">
-        <p className="text-4xl font-semibold text-fg-primary">
-          {quote ? formatPrice(quote.price, currency) : "-"}
-        </p>
+      {/* 좁은 폭에선 등락이 통째로 다음 줄로 (#174) */}
+      <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        {quoteLoading ? (
+          <div className="h-10 w-44 animate-pulse rounded-lg bg-surface" />
+        ) : (
+          <p className="text-4xl font-semibold text-fg-primary">
+            {quote ? formatPrice(quote.price, currency) : "-"}
+          </p>
+        )}
         {quote && (diff !== null || rate !== null) && (
-          <span className={`text-sm font-medium ${changeColor}`}>
+          <span className={`whitespace-nowrap text-sm font-medium ${changeColor}`}>
             {diff !== null && `${sign}${formatPrice(diff, currency)}`}
             {diff !== null && rate !== null && " "}
             {rate !== null && `(${sign}${rate.toFixed(2)}%)`}

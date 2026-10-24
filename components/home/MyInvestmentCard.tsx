@@ -17,6 +17,7 @@ type HoldingRow = {
 type Summary = {
   totalAsset: number | null; // season_rankings.total_asset (서버 집계)
   returnRate: number | null; // season_rankings.return_rate
+  fromSnapshot: boolean; // 집계 전 → asset_snapshots 폴백 (#180)
   holdings: HoldingRow[];
 };
 
@@ -55,11 +56,7 @@ export default function MyInvestmentCard({
   const [summary, setSummary] = useState<Summary | null>(null);
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
+    if (authLoading || !userId) return; // 비로그인은 아래 렌더에서 먼저 분기
 
     let active = true;
 
@@ -99,6 +96,24 @@ export default function MyInvestmentCard({
         }
       }
 
+      // 집계 전(가입 직후 ~ 다음 00:05)이면 가입 트리거가 만든 스냅샷을 쓴다.
+      // 같은 총자산 공식(KRW)이고 본인 행만 읽히므로 그대로 폴백 (#180)
+      let fromSnapshot = false;
+      if (totalAsset == null) {
+        const { data: snap } = await supabase
+          .from("asset_snapshots")
+          .select("total_value_krw, return_rate")
+          .eq("account_id", account.id)
+          .order("snapshot_date", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (snap) {
+          totalAsset = snap.total_value_krw;
+          returnRate = snap.return_rate;
+          fromSnapshot = true;
+        }
+      }
+
       // 보유종목 top: holdings + price_quotes (account 페이지와 동일 패턴)
       const { data: holdingRows } = await supabase
         .from("holdings")
@@ -134,7 +149,7 @@ export default function MyInvestmentCard({
         .slice(0, 5);
 
       if (!active) return;
-      setSummary({ totalAsset, returnRate, holdings });
+      setSummary({ totalAsset, returnRate, fromSnapshot, holdings });
       setLoading(false);
     }
 
@@ -185,6 +200,12 @@ export default function MyInvestmentCard({
         {summary?.returnRate != null && (
           <p className={`text-sm font-medium ${rateColor(summary.returnRate)}`}>
             {formatPct(summary.returnRate)}
+            <span className="ml-1 text-xs font-normal text-fg-muted">시드 대비</span>
+          </p>
+        )}
+        {summary?.fromSnapshot && (
+          <p className="mt-1 text-xs text-fg-muted">
+            가입 시점 기준 · 매일 00:05 집계 후 갱신
           </p>
         )}
       </div>

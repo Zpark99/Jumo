@@ -39,6 +39,7 @@ type Props = {
   currency: string;
   userId: string;
   quote: Quote | null;
+  quoteLoading: boolean;
   candles: Candle[] | null;
   candlesLoading: boolean;
   candlesError: string | null;
@@ -60,6 +61,7 @@ export default function StockTabs({
   currency,
   userId,
   quote,
+  quoteLoading,
   candles,
   candlesLoading,
   candlesError,
@@ -79,7 +81,7 @@ export default function StockTabs({
             key={key}
             type="button"
             onClick={() => onTabChange(key)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+            className={`rounded-full px-3 py-2 text-xs font-medium transition-colors ${
               activeTab === key
                 ? "bg-brand text-white"
                 : "bg-surface text-fg-secondary hover:bg-border"
@@ -92,36 +94,39 @@ export default function StockTabs({
 
       {activeTab === "quote" ? (
         <dl className="mt-8 space-y-3 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-fg-secondary">현재가</dt>
-            <dd className="text-fg-primary">
-              {quote ? formatPrice(quote.price, currency) : "-"}
-            </dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-fg-secondary">전일 종가</dt>
-            <dd className="text-fg-primary">
-              {quote && quote.prev_close !== null
-                ? formatPrice(quote.prev_close, currency)
-                : "-"}
-            </dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-fg-secondary">등락률</dt>
-            <dd className="text-fg-primary">
-              {quote && quote.change_rate !== null
-                ? `${quote.change_rate > 0 ? "+" : ""}${quote.change_rate.toFixed(2)}%`
-                : "-"}
-            </dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-fg-secondary">갱신 시각</dt>
-            <dd className="text-fg-primary">
-              {quote
-                ? new Date(quote.fetched_at).toLocaleTimeString("ko-KR")
-                : "-"}
-            </dd>
-          </div>
+          {/* 첫 조회 전엔 스켈레톤, 실패/시세 없음만 "-" (#172) */}
+          {(
+            [
+              ["현재가", quote ? formatPrice(quote.price, currency) : "-"],
+              [
+                "전일 종가",
+                quote && quote.prev_close !== null
+                  ? formatPrice(quote.prev_close, currency)
+                  : "-",
+              ],
+              [
+                "등락률",
+                quote && quote.change_rate !== null
+                  ? `${quote.change_rate > 0 ? "+" : ""}${quote.change_rate.toFixed(2)}%`
+                  : "-",
+              ],
+              [
+                "갱신 시각",
+                quote
+                  ? new Date(quote.fetched_at).toLocaleTimeString("ko-KR")
+                  : "-",
+              ],
+            ] as const
+          ).map(([label, value]) => (
+            <div key={label} className="flex justify-between">
+              <dt className="text-fg-secondary">{label}</dt>
+              {quoteLoading ? (
+                <dd className="h-4 w-24 animate-pulse rounded bg-surface" />
+              ) : (
+                <dd className="text-fg-primary">{value}</dd>
+              )}
+            </div>
+          ))}
         </dl>
       ) : activeTab === "chart" ? (
         <div className="mt-8">

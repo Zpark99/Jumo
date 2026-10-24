@@ -59,7 +59,7 @@ function Header() {
       <h2 className="text-sm font-medium text-fg-secondary">누적 수익률 랭킹</h2>
       <Link
         href="/ranking"
-        className="text-xs font-medium text-fg-secondary underline hover:text-fg-primary"
+        className="tap text-xs font-medium text-fg-secondary underline hover:text-fg-primary"
       >
         전체 보기
       </Link>
@@ -78,11 +78,7 @@ export default function RankingPreview({
   const [rows, setRows] = useState<RankRow[]>([]);
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
+    if (authLoading || !userId) return; // 비로그인은 아래 렌더에서 먼저 분기
 
     let active = true;
 

@@ -112,24 +112,32 @@ export default function StockTradePage({
     let active = true;
 
     async function poll() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
 
-      const res = await fetch(`/api/quote/${stockId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
+        const res = await fetch(`/api/quote/${stockId}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
 
-      if (!active) return;
+        if (!active) return;
 
-      if (!res.ok) {
-        setQuoteError("시세를 불러오지 못했습니다");
-        setQuote(null);
-        return;
+        if (!res.ok) {
+          setQuoteError("시세를 불러오지 못했습니다");
+          setQuote(null);
+          return;
+        }
+
+        const data: Quote = await res.json();
+        setQuote(data);
+        setQuoteError(null);
+      } catch {
+        // 네트워크 단절 등 throw도 "실패"로 — 아니면 스켈레톤이 영원히 남는다 (#172)
+        if (active) {
+          setQuoteError("시세를 불러오지 못했습니다");
+          setQuote(null);
+        }
       }
-
-      const data: Quote = await res.json();
-      setQuote(data);
-      setQuoteError(null);
     }
 
     poll();
@@ -260,6 +268,8 @@ export default function StockTradePage({
   const stockName = stock?.name_ko ?? stock?.name_en ?? stockId;
   const currency = stock?.currency ?? "KRW";
   const estimatedAmount = quote ? quote.price * quantity : null;
+  // 첫 조회 완료 전 = 스켈레톤. 실패/시세 없음은 quoteError가 있어 "-" (#172)
+  const quoteLoading = quote === null && quoteError === null;
 
   const handleConfirmOrder = async () => {
     if (submittingRef.current) return;
@@ -326,6 +336,7 @@ export default function StockTradePage({
             stockName={stockName}
             ticker={stock?.ticker ?? stockId}
             quote={quote}
+            quoteLoading={quoteLoading}
             currency={currency}
             quoteError={quoteError}
           />
@@ -338,6 +349,7 @@ export default function StockTradePage({
             currency={currency}
             userId={user.id}
             quote={quote}
+            quoteLoading={quoteLoading}
             candles={candles}
             candlesLoading={candlesLoading}
             candlesError={candlesError}

@@ -17,7 +17,8 @@ type Quote = { price: number; change_rate: number | null; fetched_at: string };
 
 export type QuoteMap = Record<string, Quote | undefined>;
 
-// price_quotes 캐시(DB)만 읽는다 — KIS 호출 없음. 행이 없는 종목은 "-"로 그려진다
+// price_quotes 캐시(DB)만 읽는다 — KIS 호출 없음. 행이 없는 종목은 "-"로 그려진다.
+// quotes가 null이면 아직 조회 전 → 가격 자리 스켈레톤 (#172)
 export async function fetchQuotes(stockIds: string[]): Promise<QuoteMap> {
   const { data } = await supabase
     .from("price_quotes")
@@ -67,7 +68,7 @@ export default function StockList({
   canToggle = false,
 }: {
   stocks: Stock[];
-  quotes: QuoteMap;
+  quotes: QuoteMap | null;
   watchlist?: Record<string, string>;
   onToggle?: (stockId: string) => void;
   canToggle?: boolean;
@@ -76,7 +77,7 @@ export default function StockList({
     <ul className="divide-y divide-border rounded-3xl border border-border bg-card">
       {stocks.map((s) => {
         const name = s.name_ko ?? s.name_en ?? s.id;
-        const quote = quotes[s.id];
+        const quote = quotes?.[s.id];
         const stale = quote ? staleLabel(quote.fetched_at) : null;
         const isWatched = !!watchlist[s.id];
 
@@ -96,7 +97,7 @@ export default function StockList({
                       onToggle(s.id);
                     }}
                     aria-label={isWatched ? "관심종목 제거" : "관심종목 추가"}
-                    className={`text-lg leading-none ${
+                    className={`tap text-lg leading-none ${
                       isWatched
                         ? "text-yellow-500"
                         : "text-fg-muted"
@@ -115,14 +116,18 @@ export default function StockList({
                 </div>
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-sm font-medium tabular-nums text-fg-primary">
-                  {stale && (
-                    <span className="mr-1.5 text-[11px] font-normal text-fg-muted">
-                      {stale}
-                    </span>
-                  )}
-                  {quote ? formatPrice(quote.price, s.currency) : "-"}
-                </p>
+                {quotes === null ? (
+                  <div className="h-4 w-20 animate-pulse rounded bg-surface" />
+                ) : (
+                  <p className="text-sm font-medium tabular-nums text-fg-primary">
+                    {stale && (
+                      <span className="mr-1.5 text-[11px] font-normal text-fg-muted">
+                        {stale}
+                      </span>
+                    )}
+                    {quote ? formatPrice(quote.price, s.currency) : "-"}
+                  </p>
+                )}
                 {quote && quote.change_rate !== null && (
                   <p
                     className={`text-xs font-medium tabular-nums ${rateColor(quote.change_rate)}`}

@@ -98,7 +98,7 @@ export default function ReactionButtons({
         type="button"
         onClick={() => handleClick("like")}
         disabled={disabled || pending}
-        className={`rounded-full px-2 py-1 font-medium transition-colors disabled:opacity-50 ${
+        className={`relative rounded-full px-2 py-1 font-medium transition-colors before:absolute before:-inset-1 before:content-[''] disabled:opacity-50 ${
           isLike
             ? "bg-brand text-white"
             : "text-fg-muted hover:bg-surface"
@@ -110,7 +110,7 @@ export default function ReactionButtons({
         type="button"
         onClick={() => handleClick("dislike")}
         disabled={disabled || pending}
-        className={`rounded-full px-2 py-1 font-medium transition-colors disabled:opacity-50 ${
+        className={`relative rounded-full px-2 py-1 font-medium transition-colors before:absolute before:-inset-1 before:content-[''] disabled:opacity-50 ${
           isDislike
             ? "bg-brand text-white"
             : "text-fg-muted hover:bg-surface"
