@@ -78,7 +78,7 @@ export default function PostCard({
         <button
           type="button"
           onClick={onRepost}
-          className="text-xs font-medium text-fg-muted hover:text-fg-secondary"
+          className="tap text-xs font-medium text-fg-muted hover:text-fg-secondary"
         >
           리포스트
         </button>
@@ -89,7 +89,7 @@ export default function PostCard({
           <button
             type="button"
             onClick={onDelete}
-            className="ml-auto text-xs font-medium text-fg-muted hover:text-danger"
+            className="tap ml-auto text-xs font-medium text-fg-muted hover:text-danger"
           >
             삭제
           </button>

@@ -62,7 +62,7 @@ export default function CommentItem({
           <button
             type="button"
             onClick={onReply}
-            className="font-medium hover:text-fg-secondary"
+            className="tap font-medium hover:text-fg-secondary"
           >
             답글
           </button>
@@ -70,7 +70,7 @@ export default function CommentItem({
             <button
               type="button"
               onClick={() => onDelete(node.id)}
-              className="font-medium hover:text-danger"
+              className="tap font-medium hover:text-danger"
             >
               삭제
             </button>
@@ -97,7 +97,7 @@ export default function CommentItem({
                       <button
                         type="button"
                         onClick={() => onDelete(reply.id)}
-                        className="font-medium hover:text-danger"
+                        className="tap font-medium hover:text-danger"
                       >
                         삭제
                       </button>

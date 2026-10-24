@@ -65,7 +65,7 @@ export default function LoginPage() {
 
           <p className="text-xs text-fg-secondary">
             시세는 로그인 없이도 볼 수 있어요{" "}
-            <Link href="/" className="font-medium text-brand hover:underline">
+            <Link href="/" className="tap font-medium text-brand hover:underline">
               홈 둘러보기
             </Link>
           </p>
@@ -73,7 +73,7 @@ export default function LoginPage() {
           <p className="border-t border-border pt-6 text-xs text-fg-muted">
             가상 자금으로 거래하는 모의투자 서비스로, 실제 돈이 오가지 않습니다.
             <br />
-            <Link href="/privacy" className="underline hover:text-fg-primary">
+            <Link href="/privacy" className="tap underline hover:text-fg-primary">
               개인정보처리방침
             </Link>
           </p>

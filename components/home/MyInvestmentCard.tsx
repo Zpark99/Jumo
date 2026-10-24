@@ -56,11 +56,7 @@ export default function MyInvestmentCard({
   const [summary, setSummary] = useState<Summary | null>(null);
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
+    if (authLoading || !userId) return; // 비로그인은 아래 렌더에서 먼저 분기
 
     let active = true;
 
