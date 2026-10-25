@@ -14,7 +14,7 @@
 |---|---|
 | ![홈](./docs/images/home.png) | <img src="./docs/images/home-mobile.png" width="260" alt="홈 모바일" /> |
 
-| 종목 상세 (캔들 · 호가 · 주문) | 내 계좌 (자산 · 추이 그래프) |
+| 종목 상세 (시세 · 주문 패널) | 내 계좌 (자산 · 추이 그래프) |
 |---|---|
 | ![종목 상세](./docs/images/stock-detail.png) | ![내 계좌](./docs/images/account.png) |
 
