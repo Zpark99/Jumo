@@ -76,15 +76,15 @@
 
 ## 3. DB 함수 (RPC·트리거)
 
-실행 권한은 **운영 DB `pg_proc.proacl` 실측(2026-10-25)** 기준. Supabase는 새 함수마다 anon·authenticated에 EXECUTE를 직접 부여하므로 `revoke … from public`만으로는 지워지지 않는다(#137). 아래 ⚠️는 마이그레이션 의도(authenticated만)와 달리 anon에 EXECUTE가 남은 것.
+실행 권한은 **운영 DB `pg_proc.proacl` 실측(2026-10-25, #187 적용 후)** 기준. Supabase는 새 함수마다 anon·authenticated에 EXECUTE를 직접 부여하므로 `revoke … from public`만으로는 지워지지 않는다(#137). 10/25 실측에서 `execute_order`·`get_or_create_current_season`에 anon EXECUTE가 남아 있어 #187에서 세 역할 명시로 회수했다.
 
 | 함수 | DEFINER | 실행 권한 (실측) | 호출 위치 | 비고 |
 |---|---|---|---|---|
-| `execute_order(p_stock_id, p_side, p_quantity, p_order_type, p_limit_price?)` | ✅ | authenticated, service_role, ⚠️ anon | `app/stocks/[id]/page.tsx` (`p_order_type: "market"`) | 내부 `auth.uid()` null → `AUTH_REQUIRED` 예외라 anon은 실질 거부. 아래 3.1 |
+| `execute_order(p_stock_id, p_side, p_quantity, p_order_type, p_limit_price?)` | ✅ | authenticated, service_role (anon은 #187에서 회수) | `app/stocks/[id]/page.tsx` (`p_order_type: "market"`) | 내부 `auth.uid()` null → `AUTH_REQUIRED` 예외. 아래 3.1 |
 | `get_kis_token()` | ✅ | service_role만 | `lib/kis.ts` | 만료 5분 전까지만 반환 |
 | `upsert_kis_token(p_token, p_expires_at)` | ✅ | service_role만 | `lib/kis.ts` | |
 | `upsert_price_quote(p_stock_id, p_price, p_prev_close, p_change_rate)` | ✅ | service_role만 | `lib/quotes.ts` (quote 라우트 + cron) | `price > 0` CHECK 위반 시 `23514` |
-| `get_or_create_current_season()` | ✅ | authenticated, service_role, ⚠️ anon | `app/ranking/page.tsx`, pg_cron | 이번 달 시즌 행 조회/생성, 활성 시즌 1개 유지. anon 호출은 행 생성만 가능(데이터 노출 없음) — 회수 후보 |
+| `get_or_create_current_season()` | ✅ | authenticated, service_role (anon은 #187에서 회수) | `app/ranking/page.tsx`, 홈 `MyInvestmentCard`·`RankingPreview`(로그인 시에만), pg_cron | 이번 달 시즌 행 조회/생성, 활성 시즌 1개 유지 |
 | `calculate_season_ranking(p_season_id)` | ✅ | authenticated, service_role | `/ranking` "지금 갱신" 버튼, pg_cron | 전 계좌 풀스캔 upsert. anon은 #137에서 회수됨 ✅ |
 | `account_total_assets_krw()` | ❌ | postgres, service_role | `capture_asset_snapshots` 내부 | KRW 현금 + KRW 보유(시세 없으면 평단가). USD 미집계 |
 | `capture_asset_snapshots()` | ❌ | postgres, service_role | pg_cron | 오늘(KST) 행 없는 계좌만 insert, 새로 기록한 행 수 반환 |
@@ -114,11 +114,11 @@
 | 뷰 | invoker/definer | 노출 컬럼 | 권한 (실측) | 사용처 |
 |---|---|---|---|---|
 | `season_rankings` | **definer** (`security_invoker=false`, #180) | `season_id, account_id, user_id, user_nickname, user_icon, total_asset, return_rate, rank, updated_at` — 잔고·시드 컬럼 없음 | **authenticated SELECT만**. anon·public 없음 | `/ranking`, 홈 `RankingPreview`·`MyInvestmentCard` |
-| `posts_with_author` | definer (옵션 미지정 = 기본값) | posts 컬럼 + 작성자 닉네임·아이콘 + like/dislike/comment 실시간 집계 | ⚠️ 기본 grant 그대로 — **anon·authenticated에 SELECT 포함 전 권한** | 피드, 글 상세, 프로필 |
-| `feed_posts` | definer | 위와 동일, `stock_id IS NULL` 최신순 | ⚠️ 동일 | (코드 직접 사용 없음, 정의만 유지) |
-| `community_posts` | definer | 위와 동일, `stock_id IS NOT NULL` | ⚠️ 동일 | (코드 직접 사용 없음) |
+| `posts_with_author` | definer (옵션 미지정 = 기본값) | `id, author_id, content, stock_id, repost_of, created_at, author_nickname, author_icon, like_count, dislike_count, comment_count` — 이메일·avatar_url 없음 | **authenticated SELECT만** (#187) | 글 상세, 프로필 작성글, `PostFeed`의 리포스트 원글 조회 |
+| `feed_posts` | definer | 위와 동일, `stock_id IS NULL` 최신순 | authenticated SELECT만 (#187) | `/feed` → `PostFeed table="feed_posts"` |
+| `community_posts` | definer | 위와 동일, `stock_id IS NOT NULL` | authenticated SELECT만 (#187) | 종목상세 커뮤니티 탭 → `PostFeed table="community_posts"` |
 
-⚠️ **2026-10-25 실측**: `posts` 테이블은 RLS로 anon 조회가 빈 배열이지만, 정의자 뷰 `posts_with_author`·`feed_posts`·`community_posts`는 anon 키만으로 `200 + 행`이 반환된다. "피드 읽기는 authenticated 전용" 정책(2026-07-20, CLAUDE.md)이 **뷰 경유로는 적용되지 않는 상태**. 화면은 `/feed`에서 비로그인 안내로 막혀 있으나 REST 직접 호출은 열려 있다. 동결 정책상 보안 hotfix 후보 — 조치는 `revoke all … from anon` + `grant select to authenticated`(#180과 같은 방식). Supabase Security Advisor의 "Security Definer View" 4건은 이 뷰들이다.
+**2026-10-25 실측·조치 (#187)**: `posts` 테이블은 RLS로 anon 조회가 빈 배열이었지만, 위 세 정의자 뷰는 Supabase 기본 grant 그대로라 anon 키만으로 `200 + 행`이 반환됐다. "피드 읽기는 authenticated 전용" 정책(2026-07-20)이 뷰 경유로는 적용되지 않던 것. 화면은 전부 로그인 가드 뒤라 UI 영향은 없었고, `20261025000001`에서 anon·public 전부 회수 + authenticated SELECT만 남겼다(#180 `season_rankings`와 같은 방식). 정의자 뷰는 RLS를 타지 않으므로 **뷰 권한이 곧 접근 제어**다 — 새 뷰를 만들면 grant를 반드시 명시한다. Supabase Security Advisor의 "Security Definer View" 4건은 이 뷰들 + `season_rankings`이며 의도된 것.
 
 ## 5. 스케줄 작업
 

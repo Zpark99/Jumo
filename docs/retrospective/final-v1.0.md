@@ -62,7 +62,7 @@
 | 6 | **랭킹 11일 정지** (#157) | 10-13 (#145 작업 중) | 스냅샷 cron은 **적재만** 하고 집계는 `/ranking` 수동 버튼 전용. "cron이 있다 = 랭킹이 자동"이라고 가정 | pg_cron `calculate-ranking-daily` 00:05·09:05 KST. 첫 실행 확인 후 닫음 |
 | 7 | **🔴 시세 cron 평일 4회 전부 401** (#166) | 10-19 (5일 뒤) | Vercel에 `CRON_SECRET`이 없었음. "등록 완료" 코멘트(10/14)는 대시보드를 다시 열어 확인한 결과가 아니었고, 릴리스 PR의 "배포 후 확인" 항목도 미실행. Hobby Logs 1시간 보관이라 사후 추적 불가, **DB `fetched_at`이 유일한 증거** | 등록 → Redeploy → Run. 등록 직후의 Run은 구배포를 때려 401(21:55), Redeploy 후 200(22:01). `asset_snapshots` 5일 연속 동일값으로 랭킹까지 묵은 상태였음 |
 | 8 | **신규 가입자에게 랭킹이 빈 화면** (#180) | 10-24 (#178 데모 계정) | `season_rankings`가 invoker 뷰로 `accounts`를 join → `accounts` RLS(본인만)에 타 유저 행이 걸러짐. **유저 1명일 땐 자기 행만 보여 드러나지 않음** | definer 뷰 + 노출 컬럼 제한 + anon 회수. `accounts` RLS는 그대로 |
-| 9 | **소셜 뷰 anon 읽기 가능** (신규, 이 회고 작성 중 실측) | 10-25 | `posts_with_author`·`feed_posts`·`community_posts`가 정의자 뷰(옵션 미지정 기본값) + 기본 grant 그대로 → `posts` RLS는 anon을 막지만 뷰는 anon 키로 `200 + 행`. `get_or_create_current_season`도 anon EXECUTE 잔존 | 미조치. 동결 정책상 **보안 hotfix 후보** (#180과 같은 방식: anon 회수 + authenticated SELECT). `07-API-Spec.md` 4절에 기록 |
+| 9 | **소셜 뷰 anon 읽기 가능** (신규, 이 회고 작성 중 실측) | 10-25 | `posts_with_author`·`feed_posts`·`community_posts`가 정의자 뷰(옵션 미지정 기본값) + 기본 grant 그대로 → `posts` RLS는 anon을 막지만 뷰는 anon 키로 `200 + 행`. `get_or_create_current_season`도 anon EXECUTE 잔존 | 같은 날 보안 hotfix #187 — anon·public 회수 + authenticated SELECT만(#180과 같은 방식), 함수 2개 anon EXECUTE 회수. 화면 영향 없음(전부 로그인 가드 뒤) |
 
 ### 공통 패턴
 
