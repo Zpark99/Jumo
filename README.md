@@ -124,9 +124,10 @@ node --env-file=.env.local supabase/tests/concurrency_execute_order.mjs
 - [`04-Architecture.md`](./docs/04-Architecture.md) — 아키텍처 · KIS 연동 제약(실측) · 기술 결정
 - [`05-Design-System.md`](./docs/05-Design-System.md) — 디자인 토큰 · 컴포넌트
 - [`06-Screen-Definitions.md`](./docs/06-Screen-Definitions.md) — 스크린 정의
-- [`07-API-Spec.md`](./docs/07-API-Spec.md) — KIS 연동 · 내부 RPC · 엔드포인트
+- [`07-API-Spec.md`](./docs/07-API-Spec.md) — Route Handlers · KIS 연동 · DB 함수/뷰 권한 · 스케줄 (v1.0 최종)
 - [`08-Deployment-Checklist.md`](./docs/08-Deployment-Checklist.md) — 배포 체크리스트
 - [`09-v2-Roadmap.md`](./docs/09-v2-Roadmap.md) — v1.0 범위 · v2 이관 목록
+- [`retrospective/final-v1.0.md`](./docs/retrospective/final-v1.0.md) — **v1.0 최종 회고** (타임라인 · 수치 · 결정 · 사건과 원인)
 - [`retrospective/`](./docs/retrospective) — 주간 회고
 
 ## 알려진 제약 · v2
