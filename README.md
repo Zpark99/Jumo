@@ -129,6 +129,7 @@ node --env-file=.env.local supabase/tests/concurrency_execute_order.mjs
 - [`09-v2-Roadmap.md`](./docs/09-v2-Roadmap.md) — v1.0 범위 · v2 이관 목록
 - [`retrospective/final-v1.0.md`](./docs/retrospective/final-v1.0.md) — **v1.0 최종 회고** (타임라인 · 수치 · 결정 · 사건과 원인)
 - [`retrospective/`](./docs/retrospective) — 주간 회고
+- [`release-notes/v1.0.0.md`](./docs/release-notes/v1.0.0.md) — v1.0.0 릴리스 노트
 
 ## 알려진 제약 · v2
 
