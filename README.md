@@ -118,17 +118,20 @@ node --env-file=.env.local supabase/tests/concurrency_execute_order.mjs
 
 ## 문서
 
-- [`01-PRD.md`](./docs/01-PRD.md) — 요구사항
-- [`02-IA-Sitemap.md`](./docs/02-IA-Sitemap.md) — IA · 사이트맵
-- [`03-ERD.md`](./docs/03-ERD.md) — 데이터 모델
-- [`04-Architecture.md`](./docs/04-Architecture.md) — 아키텍처 · KIS 연동 제약(실측) · 기술 결정
-- [`05-Design-System.md`](./docs/05-Design-System.md) — 디자인 토큰 · 컴포넌트
-- [`06-Screen-Definitions.md`](./docs/06-Screen-Definitions.md) — 스크린 정의
-- [`07-API-Spec.md`](./docs/07-API-Spec.md) — Route Handlers · KIS 연동 · DB 함수/뷰 권한 · 스케줄 (v1.0 최종)
-- [`08-Deployment-Checklist.md`](./docs/08-Deployment-Checklist.md) — 배포 체크리스트
+**먼저 읽기** — 리뷰어 추천 순서
+1. 이 README — 화면 · 주요 기능 · 설계 하이라이트
+2. [`07-API-Spec.md`](./docs/07-API-Spec.md) — Route Handlers · KIS 연동 · DB 함수/뷰 권한 · 스케줄 (운영 DB 실측, v1.0 최종)
+3. [`retrospective/final-v1.0.md`](./docs/retrospective/final-v1.0.md) — **v1.0 최종 회고** (타임라인 · 수치 · 결정 · 사건과 원인)
+4. [`04-Architecture.md`](./docs/04-Architecture.md) — 아키텍처 · KIS 연동 제약(실측) · 기술 결정
+
+나머지
+- [`01-PRD.md`](./docs/01-PRD.md) — 요구사항 (v1.0 결과 기준 In/Out · 측정한 지표)
+- [`03-ERD.md`](./docs/03-ERD.md) — 데이터 모델 (운영 DB 실측 mermaid ERD · 제약 · 뷰 · RLS)
+- [`05-Design-System.md`](./docs/05-Design-System.md) — 디자인 토큰 · 색 규율 · 화면별 적용 현황
+- [`08-Deployment-Checklist.md`](./docs/08-Deployment-Checklist.md) — 환경변수 · 운영 설정 체크리스트
 - [`09-v2-Roadmap.md`](./docs/09-v2-Roadmap.md) — v1.0 범위 · v2 이관 목록
-- [`retrospective/final-v1.0.md`](./docs/retrospective/final-v1.0.md) — **v1.0 최종 회고** (타임라인 · 수치 · 결정 · 사건과 원인)
-- [`retrospective/`](./docs/retrospective) — 주간 회고
+- [`02-IA-Sitemap.md`](./docs/02-IA-Sitemap.md) · [`06-Screen-Definitions.md`](./docs/06-Screen-Definitions.md) — v1.0에서는 이 README의 라우트 · 화면 절로 대체
+- [`retrospective/`](./docs/retrospective) — 주간 회고 4편
 - [`release-notes/v1.0.0.md`](./docs/release-notes/v1.0.0.md) — v1.0.0 릴리스 노트
 
 ## 알려진 제약 · v2
