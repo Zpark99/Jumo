@@ -118,7 +118,6 @@ node --env-file=.env.local supabase/tests/concurrency_execute_order.mjs
 
 ## 문서
 
-**먼저 읽기** — 리뷰어 추천 순서
 1. 이 README — 화면 · 주요 기능 · 설계 하이라이트
 2. [`07-API-Spec.md`](./docs/07-API-Spec.md) — Route Handlers · KIS 연동 · DB 함수/뷰 권한 · 스케줄 (운영 DB 실측, v1.0 최종)
 3. [`retrospective/final-v1.0.md`](./docs/retrospective/final-v1.0.md) — **v1.0 최종 회고** (타임라인 · 수치 · 결정 · 사건과 원인)
@@ -145,5 +144,9 @@ v1.0은 2026-10-31 동결. 이후 신규 개발 없이 머니 · 보안 버그 h
 - 다크 테마 전용 (#51) · 아바타 업로드 없음 (#43) · 시즌(기간별) 랭킹 없음 (#47)
 
 ---
+
+## 앞으로의 변화 예정
+
+모의투자 사이트를 거래엔진 도메인 쪽으로 집중해 JAVA + SPRING으로 거래엔진 사이트를 만들어 설계, 구현, 원장 개발 진행
 
 <sub>개인 포트폴리오 프로젝트 · 실제 자금 거래가 아닌 모의투자 서비스입니다.</sub>
