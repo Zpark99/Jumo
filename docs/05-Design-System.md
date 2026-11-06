@@ -34,20 +34,20 @@
 - 코드: Pretendard (예정 — 현재 코드는 Geist, 미반영) / Figma: Noto Sans KR
 - 가격·수치: tabular figures
 
-## 컴포넌트 (Figma)
-- Nav / 상단 내비 (상태=로그아웃·로그인)
-- Sidebar / 내 투자
-- (주문 패널 · 지수 카드 · 뉴스 아이템 · 포스트 카드 — 예정)
+## 컴포넌트 (Figma) — v1.0 미진행
+- Figma에 있는 것: Nav / 상단 내비 (상태=로그아웃·로그인) · Sidebar / 내 투자
+- 주문 패널 · 지수 카드 · 뉴스 아이템 · 포스트 카드는 Figma 없이 코드로 바로 구현했다. 동결(2026-10-31)로 Figma 컴포넌트화는 v1.0에서 진행하지 않음
 
-## P5 적용 현황 (2026-10-09)
+## v1.0 적용 현황 (2026-10-29 최종)
 
 | 화면 | 상태 | 코드 |
 |---|---|---|
 | 전역 내비 | ✅ 전역 `TopNav` + 모바일 햄버거. 페이지별 중복 헤더 제거, `/login`은 숨김 (#104) | `components/TopNav.tsx` |
-| 종목 상세 | ✅ 레이아웃 재설계 + 컴포넌트 분리, 호가·뉴스·차트·커뮤니티 탭 (#83·#85·#88·#90·#94·#113·#114·#112) | `app/stocks/[id]/` — `StockHeader` `StockTabs` `OrderPanel` `ConfirmModal` `OrderBook` `StockNews` `CandleChart` |
-| 홈 | ✅ 3컬럼 레이아웃 셸 + 위젯 (#96·#98·#102) | `components/home/` — `MyInvestmentCard` `RankingPreview` `StockList` `IndexCardGrid` `SchedulePanel` |
-| 피드 | ✅ 작성폼·정렬 세그먼트·포스트 카드화 리스타일 (#116). 소셜 로직 무변경, 종목상세 커뮤니티 탭과 공유 | `components/PostFeed.tsx` |
-| 랭킹 · 계좌 · 마이페이지 · 프로필 | ⏳ P4 토큰화만 적용, P5 리스타일 미착수 | — |
+| 종목 상세 | ✅ 레이아웃 재설계 + 컴포넌트 분리, 호가·뉴스·차트·커뮤니티 탭 (#83·#85·#88·#90·#94·#113·#114·#112), 가격 로딩 스켈레톤 (#172) | `app/stocks/[id]/` — `StockHeader` `StockTabs` `OrderPanel` `ConfirmModal` `OrderBook` `StockNews` `CandleChart` |
+| 홈 | ✅ 3컬럼 레이아웃 셸 + 위젯 (#96·#98·#102). 코스피·코스닥 실데이터 (#108), 신규 가입자 첫 화면 폴백 (#180) | `components/home/` — `MyInvestmentCard` `RankingPreview` `StockList` `IndexCardGrid` `SchedulePanel` |
+| 피드 · 글 상세 | ✅ 작성폼·정렬 세그먼트·포스트 카드화 (#116), 글 상세 UX 마감 (#146) | `components/PostFeed.tsx` |
+| 랭킹 · 계좌 · 마이페이지/프로필 · 종목 목록 · 로그인 | ✅ UX 마감 (#145·#147·#148·#149), 계좌 추이 그래프 (#135) | `app/ranking/` `app/account/` `app/mypage/` `app/profile/` `app/stocks/page.tsx` `app/login/` |
+| 전 화면 모바일 390px | ✅ 회귀 한 바퀴 (#174) | — |
 
-- **다크 기본 고정 유지**: `<html class="dark">`. 토글은 여전히 미결정 (#51)
-- **목업으로 남은 위젯**: 지수 카드(#108), 일정/뉴스 패널(#109·#110) — UI는 완성, 데이터만 목업
+- **다크 기본 고정**: `<html class="dark">`. 토글은 v2 (#51)
+- **"예시" 배지 목업으로 남은 위젯**: 해외지수·환율·BTC 카드, 뉴스·일정 패널 (#109·#110·#138). 국내지수 카드는 실데이터 (#108)
