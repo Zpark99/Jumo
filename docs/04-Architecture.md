@@ -3,7 +3,7 @@
 ## 시스템 구성
 - Frontend: Next.js (App Router) + TypeScript + Tailwind CSS
 - Backend/DB: Supabase (PostgreSQL, RLS, RPC)
-- Data: KIS Open API (주력), Finnhub (미국 백업)
+- Data: 한국투자증권 KIS Open API (국내 현재가 · 호가 · 일/주/월봉 · 국내지수). 해외는 권한 없음(#120, 아래)
 - Infra: Vercel
 
 ## 데이터 흐름
