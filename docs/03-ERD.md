@@ -193,6 +193,8 @@ erDiagram
 
 - 삭제 전파: 유저 삭제 → `profiles`·`accounts`·`posts`·`comments`·`post_reactions`·`follows` cascade. 계좌 삭제 → 보유·주문·거래·관심·스냅샷·랭킹 cascade. 글 삭제 → 댓글·반응 cascade, 리포스트의 `repost_of`는 **set null**. 종목 삭제 → `price_quotes`·`posts` cascade, `holdings`·`orders`·`transactions`·`watchlist_items`는 FK로 **차단**.
 
+- `holdings.avg_price >= 0`은 `price_quotes.price > 0`과 기준이 다르다. 컬럼 단위 CHECK만 있고 **컬럼 간 관계 제약(`quantity > 0`이면 `avg_price > 0`)은 없다** — `quantity > 0, avg_price = 0`(공짜 보유) 행을 제약이 막지 못한다. 현재 쓰기 경로는 `execute_order` 하나뿐이고 평단은 체결가로 계산되며 체결가는 `price_quotes.price > 0`을 거치므로 실제로 0이 들어갈 길은 없다. 전량 매도는 행을 delete하므로 `quantity = 0` 행도 실제로는 생기지 않는다. 즉 코드가 그래서 안전한 상태이지 제약으로 보장된 것은 아니다. 고치려면 `check (quantity = 0 or avg_price > 0)` 한 줄이면 되지만 v1.0.0 동결 중이고 실피해 경로가 없어 **알고 미적용**(#197).
+
 ## 뷰 (FK 없음, 별도)
 
 | 뷰 | 정의 | invoker/definer | 권한 |
