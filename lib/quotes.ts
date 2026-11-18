@@ -8,6 +8,8 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 type KisQuoteResponse = {
   rt_cd: string;
+  msg_cd?: string;
+  msg1?: string;
   output?: {
     stck_prpr?: string;
     stck_sdpr?: string;
@@ -53,6 +55,7 @@ export async function fetchAndStoreQuote(
   const kisData = await fetchKisQuote(code, token);
 
   if (kisData.rt_cd !== "0") {
+    console.error("[kis] quote 실패:", kisData.rt_cd, kisData.msg_cd, kisData.msg1);
     return { quote: null, saveError: null };
   }
 
